@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<!--
+  Demo List 0.1.0 · a DigiDoughnut program
+  Built 2026-10-07 from the DigiDoughnut Platform. This file is assembled by build.mjs:
+  edit platform/ and programs/<name>/, never this output.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="color-scheme" content="light">
+<title>Demo List — A platform test program</title>
+<style>
+/* ===== DigiDoughnut Platform · dd.ui.css =====
+   The shared look, taken from Profit Coach's clean card UI. Every program uses these tokens;
+   programs set only --dd-brand (via DD_PROGRAM.accent) and their own layout. */
+:root{
+  --dd-bg:#f6f8fc; --dd-card:#fff; --dd-ink:#1e2430; --dd-muted:#6b7280; --dd-line:#e5e7eb;
+  --dd-brand:#2563eb; --dd-brand-d:#1d4ed8; --dd-brand-soft:#eef2ff; --dd-brand-soft-d:#e0e7ff;
+  --dd-ok:#15803d; --dd-okbg:#f0fdf4; --dd-okline:#bbf7d0;
+  --dd-bad:#b91c1c; --dd-badbg:#fef2f2; --dd-badline:#fecaca;
+  --dd-warn:#b45309; --dd-warnbg:#fffbeb; --dd-warnline:#fde68a;
+  --dd-radius:14px; --dd-shadow:0 1px 3px rgba(16,24,40,.08);
+  --dd-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--dd-font);background:var(--dd-bg);color:var(--dd-ink);line-height:1.55;
+     padding:0 0 calc(120px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+
+/* header */
+.dd-top{position:sticky;top:0;z-index:20;background:var(--dd-card);border-bottom:1px solid var(--dd-line);
+        padding:12px 18px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:12px}
+.dd-top h1{font-size:1.15rem;margin:0;line-height:1.2}
+.dd-top .dd-tag{font-size:.8rem;color:var(--dd-muted)}
+.dd-top .dd-spacer{flex:1}
+.dd-top .dd-slot{display:flex;gap:6px;align-items:center}
+
+/* layout + cards */
+.dd-wrap{max-width:760px;margin:0 auto;padding:20px 16px}
+.dd-card{background:var(--dd-card);border-radius:var(--dd-radius);padding:18px;margin:0 0 14px;box-shadow:var(--dd-shadow)}
+.dd-card h2{font-size:1.02rem;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.dd-note{font-size:.85rem;color:var(--dd-muted)}
+
+/* buttons */
+.dd-btn{background:var(--dd-brand);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-size:.95rem;
+        font-weight:600;cursor:pointer;font-family:inherit;min-height:44px}
+.dd-btn:hover{background:var(--dd-brand-d)} .dd-btn:disabled{opacity:.55;cursor:default}
+.dd-btn.ghost{background:var(--dd-brand-soft);color:var(--dd-brand)} .dd-btn.ghost:hover{background:var(--dd-brand-soft-d)}
+.dd-btn.danger{background:var(--dd-bad)}
+.dd-btn.small{padding:6px 12px;min-height:34px;font-size:.85rem}
+.dd-linkbtn{background:none;border:none;color:var(--dd-brand);font-size:.88rem;cursor:pointer;padding:6px 8px;font-family:inherit}
+.dd-btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.dd-input{padding:10px 12px;font-size:1rem;border:2px solid var(--dd-line);border-radius:10px;width:100%;font-family:inherit;background:#fff;color:var(--dd-ink)}
+.dd-input:focus{outline:none;border-color:var(--dd-brand)}
+:focus-visible{outline:3px solid var(--dd-brand);outline-offset:2px}
+
+/* status boxes: every message to the buyer goes through one of these */
+.dd-status{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:.92rem;display:none}
+.dd-status.show{display:block}
+.dd-status.ok{background:var(--dd-okbg);color:var(--dd-ok);border:1px solid var(--dd-okline)}
+.dd-status.err{background:var(--dd-badbg);color:var(--dd-bad);border:1px solid var(--dd-badline)}
+.dd-status.warn{background:var(--dd-warnbg);color:var(--dd-warn);border:1px solid var(--dd-warnline)}
+.dd-status.info{background:var(--dd-brand-soft);color:var(--dd-ink);border:1px solid var(--dd-brand-soft-d)}
+
+/* notices (top-of-page banners, e.g. "these are example numbers") */
+.dd-notice{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--dd-brand-soft);border:1px solid var(--dd-brand-soft-d);
+           border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:.92rem}
+.dd-notice.warn{background:var(--dd-warnbg);border-color:var(--dd-warnline);color:var(--dd-warn)}
+.dd-notice .dd-notice-text{flex:1 1 240px}
+.dd-notice .dd-btnrow{margin:0}
+
+/* sheets (modal dialogs) */
+.dd-overlay{position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px}
+.dd-sheet{background:#fff;border-radius:18px;max-width:520px;width:100%;padding:24px;max-height:92vh;overflow:auto}
+.dd-sheet h2{margin:0 0 8px;font-size:1.25rem}
+.dd-sheet pre{white-space:pre-wrap;word-break:break-word;font-size:.78rem;background:#f8fafc;border:1px solid var(--dd-line);
+              border-radius:10px;padding:10px;max-height:50vh;overflow:auto;margin:8px 0 0}
+@media (max-width:520px){ .dd-overlay{align-items:flex-end;padding:0} .dd-sheet{border-radius:18px 18px 0 0;padding-bottom:calc(24px + env(safe-area-inset-bottom))} }
+
+/* phone pairing QR */
+.dd-qr{display:flex;justify-content:center;background:#fff;border:2px solid var(--dd-line);border-radius:12px;padding:8px;margin:6px 0}
+.dd-qr svg{display:block;max-width:100%;height:auto}
+.dd-qr-timer{text-align:center;font-size:.85rem;color:var(--dd-muted);margin:4px 0 10px}
+.dd-qr-expired{padding:40px 10px;text-align:center}
+.dd-check{display:flex;gap:8px;align-items:flex-start;font-size:.92rem;margin:6px 0}
+.dd-check input{width:20px;height:20px;margin-top:2px;accent-color:var(--dd-brand)}
+
+/* toast */
+.dd-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--dd-ink);color:#fff;
+          padding:10px 16px;border-radius:12px;font-size:.92rem;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:calc(100vw - 32px)}
+
+/* footer: brand line + version; triple-click opens the support diagnostic */
+.dd-footer{max-width:760px;margin:26px auto 0;padding:0 16px;text-align:center;color:var(--dd-muted);font-size:.8rem;user-select:none;-webkit-user-select:none}
+.dd-footer p{margin:2px 0}
+.dd-footer .dd-foot-link{font-size:inherit;padding:0 2px;text-decoration:underline;color:var(--dd-muted)}
+
+/* ===== Setup Center (dd.setup) ===== */
+.dd-setup-card h2{justify-content:flex-start}
+.dd-setup-count{margin-left:auto;font-size:.78rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--dd-brand-soft);color:var(--dd-brand)}
+.dd-steps{list-style:none;margin:0;padding:0}
+.dd-step{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--dd-line)}
+.dd-step:first-child{border-top:none}
+.dd-tick{flex:0 0 30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;
+         background:#f3f4f6;color:var(--dd-muted)}
+.dd-step.done .dd-tick{background:var(--dd-okbg);color:var(--dd-ok);border:1px solid var(--dd-okline)}
+.dd-step-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.dd-step-text span{font-size:.85rem;color:var(--dd-muted)}
+.dd-step.done .dd-step-text b{color:var(--dd-muted)}
+.dd-setup-chip{display:block;margin:0 0 14px auto;background:var(--dd-card);border:1px solid var(--dd-line);border-radius:99px;padding:8px 14px;
+               font:inherit;font-size:.85rem;font-weight:600;color:var(--dd-brand);cursor:pointer;min-height:40px;box-shadow:var(--dd-shadow)}
+
+/* the wizard (a sheet with class dd-wiz) */
+.dd-wiz-top{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--dd-muted);margin:0 0 8px}
+.dd-wiz-name{font-weight:700;color:var(--dd-brand)}
+.dd-wiz-dots{display:flex;gap:6px;margin:0 0 16px}
+.dd-wiz-dots i{flex:1;height:6px;border-radius:99px;background:var(--dd-line)}
+.dd-wiz-dots i.done{background:var(--dd-ok)} .dd-wiz-dots i.now{background:var(--dd-brand)}
+.dd-wiz h2{font-size:1.3rem}
+.dd-wiz-body{font-size:1rem}
+.dd-wiz-body p{margin:0 0 12px}
+.dd-wiz-body ul{margin:0 0 12px;padding-left:20px}
+.dd-wiz-body .dd-input{margin:4px 0 6px;font-size:1.05rem}
+.dd-facts{list-style:none;padding:0 !important;font-weight:600;color:var(--dd-ok)}
+.dd-big-tick{font-size:3rem;text-align:center;color:var(--dd-ok);margin:0 0 6px !important;line-height:1}
+.dd-wiz-big{width:100%;min-height:52px;font-size:1.05rem}
+.dd-wiz-nav{display:flex;gap:10px;margin-top:16px}
+.dd-wiz-nav .dd-btn{flex:1;min-height:48px}
+.dd-wiz-help{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px;margin-top:12px;border-top:1px solid var(--dd-line);padding-top:8px}
+.dd-wiz-stuck,.dd-wiz-ask{margin-top:10px;background:#f8fafc;border:1px solid var(--dd-line);border-radius:12px;padding:12px;font-size:.92rem}
+.dd-wiz-stuck ul{margin:6px 0;padding-left:20px}
+.dd-ask-msgs{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow:auto;margin:0 0 8px}
+.dd-ask-msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.92rem}
+.dd-ask-msg.me{align-self:flex-end;background:var(--dd-brand);color:#fff}
+.dd-ask-msg.bot{align-self:flex-start;background:#fff;border:1px solid var(--dd-line)}
+.dd-ask-msg.live{border-color:var(--dd-brand-soft-d)}
+.dd-ask-msg.pending{color:var(--dd-muted);font-style:italic}
+.dd-ask-row{display:flex;gap:8px}
+.dd-ask-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dd-chip{background:#fff;border:1px solid var(--dd-brand-soft-d);color:var(--dd-brand);border-radius:99px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer;min-height:36px}
+@media (max-width:520px){ .dd-wiz h2{font-size:1.2rem} .dd-step{align-items:flex-start} }
+.dd-filename{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--dd-brand-soft);border-radius:8px;padding:8px 10px;word-break:break-all;font-size:.92rem}
+
+/* ===== PROGRAM-SPECIFIC styles ===== */
+.demo-count{margin-left:auto;font-size:.85rem;color:var(--dd-muted);font-weight:600}
+.demo-add{display:flex;gap:8px}
+.demo-row{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--dd-line);cursor:pointer}
+.demo-row input{width:20px;height:20px;accent-color:var(--dd-brand)}
+.demo-row span{flex:1}
+.demo-row.done span{text-decoration:line-through;color:var(--dd-muted)}
+.demo-x{background:#f3f4f6;border:none;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:1rem;color:var(--dd-muted)}
+.demo-x:hover{background:#fee2e2;color:var(--dd-bad)}
+
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px;font-family:sans-serif">Demo List needs JavaScript turned on in your browser to work.</p></noscript>
+
+<header class="dd-top" id="dd-top"></header>
+
+<div class="dd-wrap">
+  <div id="dd-notices" aria-live="polite"></div>
+  <div id="dd-setup"></div>   <!-- Setup Center lives here (Phase 3) -->
+  <main id="dd-app">
+<!-- PROGRAM-SPECIFIC markup. Goes inside <main id="dd-app">. Use dd-* classes for the shared look. -->
+<div class="dd-card">
+  <h2>📝 My list <span class="demo-count" id="demoCount"></span></h2>
+  <div class="demo-add">
+    <input class="dd-input" id="demoNew" placeholder="Add an item…" autocomplete="off">
+    <button class="dd-btn" id="demoAdd">Add</button>
+  </div>
+  <div class="dd-status" id="demoStatus"></div>
+  <div id="demoList"></div>
+  <div class="dd-btnrow"><button class="dd-btn ghost" id="demoClear">Clear the list</button><button class="dd-btn ghost" id="demoPhone">📲 Send to my phone</button></div>
+</div>
+<div class="dd-card">
+  <h2>About this page</h2>
+  <p class="dd-note" style="margin:0">This is the DigiDoughnut Platform test program. It checks that saving, example data and upgrades work the same in every program. Your list is saved in this browser only.</p>
+</div>
+
+  </main>
+</div>
+
+<footer class="dd-footer" id="dd-footer"></footer>
+<div id="dd-layer"></div>     <!-- sheets and toasts render here -->
+
+<script>
+window.DD_BUILD = {"built":"2026-10-07","commit":"77a65fc","platform":"0.1.0"};
+/* qrcode-generator 1.4.4 by Kazuhiko Arase, MIT License — vendored so the page stays
+   fully self-contained. QR codes are generated on-device; your access code never leaves the browser for this. */
+var qrcode=function(){function i(t,r){function a(t,r){g=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(l=4*u+17),e(0,0),e(l-7,0),e(0,l-7),i(),o(),v(t,r),7<=u&&h(t),null==n&&(n=w(u,f,c)),d(n,r)}var u=t,f=y[r],g=null,l=0,n=null,c=[],s={},e=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||l<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||l<=r+n||(g[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},o=function(){for(var t=8;t<l-8;t+=1)null==g[t][6]&&(g[t][6]=t%2==0);for(var r=8;r<l-8;r+=1)null==g[6][r]&&(g[6][r]=r%2==0)},i=function(){for(var t=B.getPatternPosition(u),r=0;r<t.length;r+=1)for(var e=0;e<t.length;e+=1){var n=t[r],o=t[e];if(null==g[n][o])for(var i=-2;i<=2;i+=1)for(var a=-2;a<=2;a+=1)g[n+i][o+a]=-2==i||2==i||-2==a||2==a||0==i&&0==a}},h=function(t){for(var r=B.getBCHTypeNumber(u),e=0;e<18;e+=1){var n=!t&&1==(r>>e&1);g[Math.floor(e/3)][e%3+l-8-3]=n}for(e=0;e<18;e+=1){n=!t&&1==(r>>e&1);g[e%3+l-8-3][Math.floor(e/3)]=n}},v=function(t,r){for(var e=f<<3|r,n=B.getBCHTypeInfo(e),o=0;o<15;o+=1){var i=!t&&1==(n>>o&1);o<6?g[o][8]=i:o<8?g[o+1][8]=i:g[l-15+o][8]=i}for(o=0;o<15;o+=1){i=!t&&1==(n>>o&1);o<8?g[8][l-o-1]=i:o<9?g[8][15-o-1+1]=i:g[8][15-o-1]=i}g[l-8][8]=!t},d=function(t,r){for(var e=-1,n=l-1,o=7,i=0,a=B.getMaskFunction(r),u=l-1;0<u;u-=2)for(6==u&&(u-=1);;){for(var f=0;f<2;f+=1)if(null==g[n][u-f]){var c=!1;i<t.length&&(c=1==(t[i]>>>o&1)),a(n,u-f)&&(c=!c),g[n][u-f]=c,-1==(o-=1)&&(i+=1,o=7)}if((n+=e)<0||l<=n){n-=e,e=-e;break}}},w=function(t,r,e){for(var n=b.getRSBlocks(t,r),o=M(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=C(i[u],l.getLength()-1).mod(l);a[u]=new Array(l.getLength()-1);for(g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=0<=s?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};s.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=x(t);break;case"Alphanumeric":e=m(t);break;case"Byte":e=L(t);break;case"Kanji":e=D(t);break;default:throw"mode:"+r}c.push(e),n=null},s.isDark=function(t,r){if(t<0||l<=t||r<0||l<=r)throw t+","+r;return g[t][r]},s.getModuleCount=function(){return l},s.make=function(){if(u<1){for(var t=1;t<40;t++){for(var r=b.getRSBlocks(t,f),e=M(),n=0;n<c.length;n++){var o=c[n];e.put(o.getMode(),4),e.put(o.getLength(),B.getLengthInBits(o.getMode(),t)),o.write(e)}var i=0;for(n=0;n<r.length;n++)i+=r[n].dataCount;if(e.getLengthInBits()<=8*i)break}u=t}a(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){a(!0,e);var n=B.getLostPoint(s);(0==e||n<t)&&(t=n,r=e)}return r}())},s.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<s.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<s.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=s.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},s.createSvgTag=function(t,r,e,n){var o={};"object"==typeof t&&(t=(o=t).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,f,c=s.getModuleCount()*t+2*r,g="";for(f="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",g+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',g+=o.scalable?"":' width="'+c+'px" height="'+c+'px"',g+=' viewBox="0 0 '+c+" "+c+'" ',g+=' preserveAspectRatio="xMinYMin meet"',g+=n.text||e.text?' role="img" aria-labelledby="'+p([n.id,e.id].join(" ").trim())+'"':"",g+=">",g+=n.text?'<title id="'+p(n.id)+'">'+p(n.text)+"</title>":"",g+=e.text?'<description id="'+p(e.id)+'">'+p(e.text)+"</description>":"",g+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',g+='<path d="',a=0;a<s.getModuleCount();a+=1)for(u=a*t+r,i=0;i<s.getModuleCount();i+=1)s.isDark(a,i)&&(g+="M"+(i*t+r)+","+u+f);return g+='" stroke="transparent" fill="black"/>',g+="</svg>"},s.createDataURL=function(o,t){o=o||2,t=void 0===t?4*o:t;var r=s.getModuleCount()*o+2*t,i=t,a=r-t;return I(r,r,function(t,r){if(i<=t&&t<a&&i<=r&&r<a){var e=Math.floor((t-i)/o),n=Math.floor((r-i)/o);return s.isDark(n,e)?0:1}return 1})},s.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=s.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=s.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=p(e),o+='"'),o+="/>"};var p=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return s.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*s.getModuleCount()+2*t,u=t,f=a-t,c={"██":"█","█ ":"▀"," █":"▄","  ":" "},g={"██":"▀","█ ":"▀"," █":" ","  ":" "},l="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<f&&u<=r&&r<f&&s.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<f&&u<=r+1&&r+1<f&&s.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",l+=t<1&&f<=r+1?g[i]:c[i];l+="\n"}return a%2&&0<t?l.substring(0,l.length-a-1)+Array(1+a).join("▀"):l.substring(0,l.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=s.getModuleCount()*t+2*r,u=r,f=a-r,c=Array(t+1).join("██"),g=Array(t+1).join("  "),l="",h="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),h="",n=0;n<a;n+=1)i=1,u<=n&&n<f&&u<=e&&e<f&&s.isDark(o,Math.floor((n-u)/t))&&(i=0),h+=i?c:g;for(o=0;o<t;o+=1)l+=h+"\n"}return l.substring(0,l.length-1)},s.renderTo2dContext=function(t,r){r=r||2;for(var e=s.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=s.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},s}i.stringToBytes=(i.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,i.createStringToBytes=function(u,f){var i=function(){function t(){var t=r.read();if(-1==t)throw"eof";return t}for(var r=S(u),e=0,n={};;){var o=r.read();if(-1==o)break;var i=t(),a=t()<<8|t();n[String.fromCharCode(o<<8|i)]=a,e+=1}if(e!=f)throw e+" != "+f;return n}(),a="?".charCodeAt(0);return function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);if(n<128)r.push(n);else{var o=i[t.charAt(e)];"number"==typeof o?(255&o)==o?r.push(o):(r.push(o>>>8),r.push(255&o)):r.push(a)}}return r}};var r,t,a=1,u=2,o=4,f=8,y={L:1,M:0,Q:3,H:2},e=0,n=1,c=2,g=3,l=4,h=5,s=6,v=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],(t={}).getBCHTypeInfo=function(t){for(var r=t<<10;0<=d(r)-d(1335);)r^=1335<<d(r)-d(1335);return 21522^(t<<10|r)},t.getBCHTypeNumber=function(t){for(var r=t<<12;0<=d(r)-d(7973);)r^=7973<<d(r)-d(7973);return t<<12|r},t.getPatternPosition=function(t){return r[t-1]},t.getMaskFunction=function(t){switch(t){case e:return function(t,r){return(t+r)%2==0};case n:return function(t,r){return t%2==0};case c:return function(t,r){return r%3==0};case g:return function(t,r){return(t+r)%3==0};case l:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case h:return function(t,r){return t*r%2+t*r%3==0};case s:return function(t,r){return(t*r%2+t*r%3)%2==0};case v:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},t.getErrorCorrectPolynomial=function(t){for(var r=C([1],0),e=0;e<t;e+=1)r=r.multiply(C([1,w.gexp(e)],0));return r},t.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case o:case f:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case o:return 16;case f:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case o:return 16;case f:return 12;default:throw"mode:"+t}}},t.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);5<i&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},t);function d(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r}var w=function(){for(var r=new Array(256),e=new Array(256),t=0;t<8;t+=1)r[t]=1<<t;for(t=8;t<256;t+=1)r[t]=r[t-4]^r[t-5]^r[t-6]^r[t-8];for(t=0;t<255;t+=1)e[r[t]]=t;var n={glog:function(t){if(t<1)throw"glog("+t+")";return e[t]},gexp:function(t){for(;t<0;)t+=255;for(;256<=t;)t-=255;return r[t]}};return n}();function C(n,o){if(void 0===n.length)throw n.length+"/"+o;var r=function(){for(var t=0;t<n.length&&0==n[t];)t+=1;for(var r=new Array(n.length-t+o),e=0;e<n.length-t;e+=1)r[e]=n[e+t];return r}(),i={getAt:function(t){return r[t]},getLength:function(){return r.length},multiply:function(t){for(var r=new Array(i.getLength()+t.getLength()-1),e=0;e<i.getLength();e+=1)for(var n=0;n<t.getLength();n+=1)r[e+n]^=w.gexp(w.glog(i.getAt(e))+w.glog(t.getAt(n)));return C(r,0)},mod:function(t){if(i.getLength()-t.getLength()<0)return i;for(var r=w.glog(i.getAt(0))-w.glog(t.getAt(0)),e=new Array(i.getLength()),n=0;n<i.getLength();n+=1)e[n]=i.getAt(n);for(n=0;n<t.getLength();n+=1)e[n]^=w.gexp(w.glog(t.getAt(n))+r);return C(e,0).mod(t)}};return i}function p(){var e=[],o={writeByte:function(t){e.push(255&t)},writeShort:function(t){o.writeByte(t),o.writeByte(t>>>8)},writeBytes:function(t,r,e){r=r||0,e=e||t.length;for(var n=0;n<e;n+=1)o.writeByte(t[n+r])},writeString:function(t){for(var r=0;r<t.length;r+=1)o.writeByte(t.charCodeAt(r))},toByteArray:function(){return e},toString:function(){var t="";t+="[";for(var r=0;r<e.length;r+=1)0<r&&(t+=","),t+=e[r];return t+="]"}};return o}var k,A,b=(k=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],(A={}).getRSBlocks=function(t,r){var e=function(t,r){switch(r){case y.L:return k[4*(t-1)+0];case y.M:return k[4*(t-1)+1];case y.Q:return k[4*(t-1)+2];case y.H:return k[4*(t-1)+3];default:return}}(t,r);if(void 0===e)throw"bad rs block @ typeNumber:"+t+"/errorCorrectionLevel:"+r;for(var n,o,i=e.length/3,a=[],u=0;u<i;u+=1)for(var f=e[3*u+0],c=e[3*u+1],g=e[3*u+2],l=0;l<f;l+=1)a.push((n=g,o=void 0,(o={}).totalCount=c,o.dataCount=n,o));return a},A),M=function(){var e=[],n=0,o={getBuffer:function(){return e},getAt:function(t){var r=Math.floor(t/8);return 1==(e[r]>>>7-t%8&1)},put:function(t,r){for(var e=0;e<r;e+=1)o.putBit(1==(t>>>r-e-1&1))},getLengthInBits:function(){return n},putBit:function(t){var r=Math.floor(n/8);e.length<=r&&e.push(0),t&&(e[r]|=128>>>n%8),n+=1}};return o},x=function(t){var r=a,n=t,e={getMode:function(){return r},getLength:function(t){return n.length},write:function(t){for(var r=n,e=0;e+2<r.length;)t.put(o(r.substring(e,e+3)),10),e+=3;e<r.length&&(r.length-e==1?t.put(o(r.substring(e,e+1)),4):r.length-e==2&&t.put(o(r.substring(e,e+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return e},m=function(t){var r=u,n=t,e={getMode:function(){return r},getLength:function(t){return n.length},write:function(t){for(var r=n,e=0;e+1<r.length;)t.put(45*o(r.charAt(e))+o(r.charAt(e+1)),11),e+=2;e<r.length&&t.put(o(r.charAt(e)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return e},L=function(t){var r=o,e=i.stringToBytes(t),n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=0;r<e.length;r+=1)t.put(e[r],8)}};return n},D=function(t){var r=f,e=i.stringToBytesFuncs.SJIS;if(!e)throw"sjis not supported.";!function(){var t=e("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=e(t),n={getMode:function(){return r},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return n},S=function(t){var e=t,n=0,o=0,i=0,r={read:function(){for(;i<8;){if(n>=e.length){if(0==i)return-1;throw"unexpected end of file./"+i}var t=e.charAt(n);if(n+=1,"="==t)return i=0,-1;t.match(/^\s$/)||(o=o<<6|a(t.charCodeAt(0)),i+=6)}var r=o>>>i-8&255;return i-=8,r}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return r},I=function(t,r,e){for(var n=function(t,r){var n=t,o=r,l=new Array(t*r),e={setPixel:function(t,r,e){l[r*n+t]=e},write:function(t){t.writeString("GIF87a"),t.writeShort(n),t.writeShort(o),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(n),t.writeShort(o),t.writeByte(0);var r=i(2);t.writeByte(2);for(var e=0;255<r.length-e;)t.writeByte(255),t.writeBytes(r,e,255),e+=255;t.writeByte(r.length-e),t.writeBytes(r,e,r.length-e),t.writeByte(0),t.writeString(";")}},i=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,o=h(),i=0;i<r;i+=1)o.add(String.fromCharCode(i));o.add(String.fromCharCode(r)),o.add(String.fromCharCode(e));var a=p(),u=function(t){var e=t,n=0,o=0,r={write:function(t,r){if(t>>>r!=0)throw"length over";for(;8<=n+r;)e.writeByte(255&(t<<n|o)),r-=8-n,t>>>=8-n,n=o=0;o|=t<<n,n+=r},flush:function(){0<n&&e.writeByte(o)}};return r}(a);u.write(r,n);var f=0,c=String.fromCharCode(l[f]);for(f+=1;f<l.length;){var g=String.fromCharCode(l[f]);f+=1,o.contains(c+g)?c+=g:(u.write(o.indexOf(c),n),o.size()<4095&&(o.size()==1<<n&&(n+=1),o.add(c+g)),c=g)}return u.write(o.indexOf(c),n),u.write(e,n),u.flush(),a.toByteArray()},h=function(){var r={},e=0,n={add:function(t){if(n.contains(t))throw"dup key:"+t;r[t]=e,e+=1},size:function(){return e},indexOf:function(t){return r[t]},contains:function(t){return void 0!==r[t]}};return n};return e}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=p();n.write(a);for(var u=function(){function e(t){a+=String.fromCharCode(r(63&t))}var n=0,o=0,i=0,a="",t={},r=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return t.writeByte=function(t){for(n=n<<8|255&t,o+=8,i+=1;6<=o;)e(n>>>o-6),o-=6},t.flush=function(){if(0<o&&(e(n<<6-o),o=n=0),i%3!=0)for(var t=3-i%3,r=0;r<t;r+=1)a+="="},t.toString=function(){return a},t}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return i}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||57344<=n?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+
+/* ---- dd.core.js ---- */
+/* ===== DigiDoughnut Platform · dd.core =====
+   The `dd` namespace, a tiny event bus, device/page detection, and dd.start(), which boots
+   a program. Programs never touch storage or the page skeleton directly: they get a `ctx`
+   with the current data and an update() function. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  dd.platformVersion = (window.DD_BUILD && window.DD_BUILD.platform) || "dev";
+
+  /* ---------- event bus ---------- */
+  var handlers = {};
+  dd.on = function (name, fn) { (handlers[name] = handlers[name] || []).push(fn); };
+  dd.emit = function (name, payload) {
+    (handlers[name] || []).forEach(function (fn) {
+      try { fn(payload); } catch (e) { if (dd.errors) dd.errors.record("event:" + name, e); }
+    });
+  };
+
+  /* ---------- detect, don't ask (wizard rule 6) ---------- */
+  var ua = navigator.userAgent || "";
+  // iPadOS reports itself as a Mac; a touch-capable "Mac" is an iPad.
+  var isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/.test(ua);
+  dd.env = {
+    isFile: location.protocol === "file:",
+    isHosted: location.protocol === "https:" || location.protocol === "http:",
+    isIOS: isIOS,
+    isAndroid: isAndroid,
+    isPhone: isIOS || isAndroid || /Mobi/.test(ua),
+    // true when opened from a Home Screen icon rather than a browser tab
+    isStandalone: (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true
+  };
+
+  /* ---------- program contract ---------- */
+  var REQUIRED = ["id", "name", "version", "schemaVersion", "emptyData", "exampleData", "validateData", "migrate", "render"];
+  function checkContract(p) {
+    if (!p) return "DD_PROGRAM is missing";
+    for (var i = 0; i < REQUIRED.length; i++) if (p[REQUIRED[i]] == null) return "DD_PROGRAM." + REQUIRED[i] + " is missing";
+    if (!/^[a-z0-9]+$/.test(p.id)) return "DD_PROGRAM.id must be lowercase letters and digits";
+    return null;
+  }
+
+  /* ---------- the running program ---------- */
+  var program = null, data = null, meta = { example: false };
+
+  function ctx() {
+    return { data: data, update: dd.update, replaceData: dd.replaceData, ui: dd.ui, root: document.getElementById("dd-app"), env: dd.env };
+  }
+  function render() {
+    try { program.render(ctx()); }
+    catch (e) { dd.errors.record("render", e); dd.ui.notice("render-fail", "Something on this page didn't draw properly. Reloading usually fixes it.", "warn"); }
+  }
+  function persist(source) {
+    var res = dd.store.saveData(program, data, meta);
+    if (!res.ok) dd.ui.notice("save-fail", dd.errors.friendly(res.reason).title + " " + dd.errors.friendly(res.reason).help, "warn");
+    else dd.ui.clearNotice("save-fail");
+    dd.emit("change", { data: data, source: source || "local" });
+    return res.ok;
+  }
+
+  /* Change the data. `fn` either edits the data it's given or returns a replacement.
+     Pass {render:false} when the screen already shows the change (typing in a box),
+     so the box doesn't lose focus. */
+  dd.update = function (fn, opts) {
+    opts = opts || {};
+    var out = fn(data);
+    if (out !== undefined) data = out;
+    persist(opts.source);
+    if (opts.render !== false) render();
+    return data;
+  };
+
+  /* Swap in a whole new data set (restore, sync, "start fresh"). Checked before it's used. */
+  dd.replaceData = function (next, opts) {
+    opts = opts || {};
+    if (!program.validateData(next)) return false;
+    data = next;
+    if (opts.example !== undefined) meta.example = !!opts.example;
+    persist(opts.source || "replace");
+    render();
+    paintExampleNotice();
+    return true;
+  };
+
+  dd.getData = function () { return data; };
+  dd.getProgram = function () { return program; };
+  dd.isExample = function () { return meta.example; };
+
+  /* "Works before setup": a first-time buyer sees example data plus one clear way out. */
+  function paintExampleNotice() {
+    if (!meta.example || program.showExampleNotice === false) { dd.ui.clearNotice("example"); return; }
+    dd.ui.notice("example", program.exampleNotice || "You're looking at example numbers so you can try things out.", "info", [
+      { label: "Clear them and start mine", primary: true, onClick: function () {
+          dd.replaceData(program.emptyData(), { example: false, source: "start-fresh" });
+          dd.ui.toast("All clear. It's yours now.");
+        } },
+      { label: "Keep these", onClick: function () { meta.example = false; persist("keep-example"); paintExampleNotice(); } }
+    ]);
+  }
+
+  /* ---------- boot ---------- */
+  dd.start = function (p) {
+    var problem = checkContract(p);
+    if (problem) { bootFailed(problem); return; }
+    program = p;
+    try {
+      dd.ui.mount(program);
+      var loaded = dd.store.loadData(program);
+      data = loaded.data; meta = loaded.meta;
+      if (loaded.notice) dd.ui.notice("load", loaded.notice, "warn");
+      if (program.mount) program.mount(ctx());
+      render();
+      if (dd.pair) {
+        // The program's numbers can ride along in the QR while they're small. Example numbers don't.
+        dd.pair.register({
+          key: "d", label: "numbers", optional: true,
+          give: function () { return (program.pairData === false || meta.example) ? undefined : [program.schemaVersion, data]; },
+          take: function (v) {
+            if (!Array.isArray(v) || v.length !== 2) return false;
+            var body = v[1];
+            if (v[0] < program.schemaVersion) body = program.migrate(body, v[0]);
+            if (!program.validateData(body)) return false;
+            return dd.replaceData(body, { example: false, source: "pair" });
+          }
+        });
+        dd.pair.receive();
+      }
+      paintExampleNotice();
+      if (dd.setup && program.setup !== false) dd.setup.start(program);
+      dd.diag.attach();
+      if (dd.notes) dd.notes.start();
+      dd.emit("ready", { source: loaded.source });
+    } catch (e) { bootFailed(e); }
+  };
+
+  function bootFailed(why) {
+    if (dd.errors) dd.errors.record("boot", why);
+    var box = document.getElementById("dd-app");
+    if (box) box.innerHTML = '<div class="dd-card"><h2>This page didn\'t start properly</h2>' +
+      '<p>Please reload the page. If it keeps happening, contact DigiDoughnut and we\'ll sort it out.</p></div>';
+    try { dd.diag.attach(); } catch (e) {}
+  }
+})();
+
+/* ---- dd.store.js ---- */
+/* ===== DigiDoughnut Platform · dd.store =====
+   Everything saved in the browser goes through here.
+
+   Storage names (plan, "Template architecture"):
+     shared by every program on the same web address:  dd_<thing>_v1           e.g. dd_ai_connections_v1
+     belonging to one program:                          dd_<program>_<thing>_v1 e.g. dd_profitcoach_data_v1
+
+   Program data is saved inside an envelope so we always know which program and which schema
+   version wrote it:
+     { dd:1, program:"profitcoach", schemaVersion:1, savedAt:"2026-10-06T…", example:false, data:{…} }
+   Data saved without an envelope (the Profit Coach POC) is read as schema version 0 and handed
+   to the program's migrate(). Nothing is ever thrown away: anything we can't read is copied to
+   dd_<program>_data_recovery_v1 first. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var store = dd.store = {};
+
+  store.sharedKey = function (thing) { return "dd_" + thing + "_v1"; };
+  store.programKey = function (programId, thing) { return "dd_" + programId + "_" + thing + "_v1"; };
+
+  /* ---------- safe access: browsers can block or fill storage ---------- */
+  function ls() { try { return window.localStorage; } catch (e) { return null; } }
+
+  store.available = function () {
+    var s = ls(); if (!s) return false;
+    try { s.setItem("dd__probe", "1"); s.removeItem("dd__probe"); return true; } catch (e) { return false; }
+  };
+  store.get = function (key) { var s = ls(); if (!s) return null; try { return s.getItem(key); } catch (e) { return null; } };
+  /* returns {ok:true} or {ok:false, reason:"storage_full"|"storage_blocked"} */
+  store.set = function (key, value) {
+    var s = ls(); if (!s) return { ok: false, reason: "storage_blocked" };
+    try { s.setItem(key, value); return { ok: true }; }
+    catch (e) {
+      var full = e && (e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014);
+      dd.errors.record("store.set", e);
+      return { ok: false, reason: full ? "storage_full" : "storage_blocked" };
+    }
+  };
+  store.remove = function (key) { var s = ls(); if (s) try { s.removeItem(key); } catch (e) {} };
+  store.getJSON = function (key) { var t = store.get(key); if (t == null) return null; try { return JSON.parse(t); } catch (e) { return undefined; } };
+  store.setJSON = function (key, value) { return store.set(key, JSON.stringify(value)); };
+
+  /* ---------- program data ---------- */
+  function keepForRecovery(programId, raw, why) {
+    dd.errors.record("store.recovery", why);
+    store.set(store.programKey(programId, "data_recovery"), typeof raw === "string" ? raw : JSON.stringify(raw));
+  }
+
+  /* Load this program's data. Returns {data, meta:{example}, source, notice?}
+     source: "example" (first visit), "saved", "migrated", "recovered" */
+  store.loadData = function (program) {
+    var key = store.programKey(program.id, "data");
+    var rawText = store.get(key);
+
+    if (rawText == null) {
+      return { data: program.exampleData(), meta: { example: true }, source: "example" };
+    }
+
+    var raw; try { raw = JSON.parse(rawText); } catch (e) { raw = undefined; }
+    var isEnvelope = raw && raw.dd === 1 && "data" in raw;
+    var fromVersion = isEnvelope ? (raw.schemaVersion | 0) : 0;
+    var body = isEnvelope ? raw.data : raw;
+    var example = isEnvelope ? !!raw.example : false;
+    var source = "saved";
+
+    try {
+      // Text that isn't readable data must never reach migrate(): a lenient migrate could
+      // turn it into an empty list and the original would be overwritten on the next save.
+      if (raw === undefined || raw === null || typeof raw !== "object") throw new Error("saved data is not readable");
+      if (isEnvelope && raw.program && raw.program !== program.id) throw new Error("saved by program " + raw.program);
+      if (fromVersion > program.schemaVersion) {
+        // Saved by a NEWER version of this program. Keep a copy, then try to carry on.
+        keepForRecovery(program.id, rawText, "newer schema " + fromVersion);
+      } else if (fromVersion < program.schemaVersion) {
+        body = program.migrate(body, fromVersion);
+        source = "migrated";
+      }
+      if (!program.validateData(body)) throw new Error("validateData said no (from v" + fromVersion + ")");
+    } catch (e) {
+      keepForRecovery(program.id, rawText, e);
+      return {
+        data: program.emptyData(), meta: { example: false }, source: "recovered",
+        notice: "We couldn't read your saved numbers, so we've started a fresh page. Your old numbers are kept safe on this device. Contact DigiDoughnut and we'll help you get them back."
+      };
+    }
+
+    if (source === "migrated") store.saveData(program, body, { example: example });
+    return { data: body, meta: { example: example }, source: source };
+  };
+
+  store.saveData = function (program, data, meta) {
+    var res = store.setJSON(store.programKey(program.id, "data"), {
+      dd: 1, program: program.id, schemaVersion: program.schemaVersion,
+      savedAt: new Date().toISOString(), example: !!(meta && meta.example), data: data
+    });
+    if (res.ok) askToKeepStorage(program);
+    return res;
+  };
+
+  store.dataBytes = function (programId) { var t = store.get(store.programKey(programId, "data")); return t ? t.length : 0; };
+
+  /* ---------- ask the browser to keep our storage ----------
+     Asked once, after the buyer's first real save, so browsers that show a prompt
+     (Firefox) show it at a moment that makes sense. Chrome and Safari decide silently. */
+  store.persisted = "not asked";
+  // On load, report what the browser already decided (from an earlier visit), so the
+  // diagnostic doesn't say "not asked" just because nothing was saved on this visit yet.
+  try {
+    if (navigator.storage && navigator.storage.persisted) {
+      navigator.storage.persisted().then(function (already) {
+        if (store.persisted === "not asked") store.persisted = already ? "yes" : "not yet";
+      }, function () {});
+    } else { store.persisted = "unsupported"; }
+  } catch (e) {}
+  function askToKeepStorage(program) {
+    if (store.persisted === "not yet") store.persisted = "not asked";
+    if (store.persisted !== "not asked") return;
+    if (!(navigator.storage && navigator.storage.persist)) { store.persisted = "unsupported"; return; }
+    store.persisted = "asking";
+    navigator.storage.persisted().then(function (already) {
+      return already || navigator.storage.persist();
+    }).then(function (granted) { store.persisted = granted ? "yes" : "no"; })
+      .catch(function (e) { store.persisted = "error"; dd.errors.record("store.persist", e); });
+  }
+})();
+
+/* ---- dd.errors.js ---- */
+/* ===== DigiDoughnut Platform · dd.errors =====
+   Every failure the buyer could see is one of a few named types with one friendly message.
+   Raw technical detail is recorded for the support diagnostic only, with codes masked.
+   RULE: buyer-facing text never contains provider wording, JSON, status codes or jargon. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var errors = dd.errors = {};
+
+  /* {company} is filled in with the AI company's friendly name, e.g. "Google". */
+  var TYPES = {
+    // the seven AI error types (plan, "AI connections")
+    offline:       ["You're not connected to the internet.", "Check your Wi-Fi or data, then try again."],
+    bad_code:      ["That code didn't work.", "It may have a typo or a missing piece. Copy it fresh from {company} and paste it again."],
+    not_allowed:   ["That code isn't allowed to do this.", "Make a new code on {company}'s site and paste it here."],
+    out_of_share:  ["You've used today's free share.", "It refills on its own. Try again later or tomorrow."],
+    busy:          ["{company}'s servers are having a busy moment.", "Wait a minute and try again. This usually clears on its own."],
+    timeout:       ["That took too long, so we stopped waiting.", "Tap Try again. If it keeps happening, check your internet."],
+    unexpected:    ["Something unexpected happened.", "Wait a moment and try again."],
+    // platform types
+    storage_full:    ["This browser's storage is full, so your last change wasn't saved.", "Make a backup, then clear some space or old data."],
+    storage_blocked: ["This browser isn't letting the program save.", "Private or incognito windows often block saving. Open the program in a normal window."]
+  };
+
+  errors.types = Object.keys(TYPES);
+
+  /* -> {type, title, help} in plain words */
+  errors.friendly = function (type, vars) {
+    var t = TYPES[type] || TYPES.unexpected;
+    var company = (vars && vars.company) || "the AI company";
+    function fill(s) { return s.replace(/\{company\}/g, company).replace(/^the AI company's/, "The AI company's"); }
+    return { type: TYPES[type] ? type : "unexpected", title: fill(t[0]), help: fill(t[1]) };
+  };
+
+  /* Generic first guess from an HTTP status or a thrown error. AI adapters (Phase 2) refine
+     this with the provider's own error reason. A 400 is NOT "bad code": it usually means a bug
+     on our side, so it maps to "unexpected" (fixes POC problem #6). */
+  errors.classify = function (info) {
+    info = info || {};
+    var name = info.name || (info.error && info.error.name);
+    if (name === "AbortError" || name === "TimeoutError") return "timeout";
+    if (navigator.onLine === false) return "offline";
+    var s = info.status;
+    if (s === 0 || name === "TypeError") return "offline";      // fetch() network failure
+    if (s === 401) return "bad_code";
+    if (s === 403) return "not_allowed";
+    if (s === 429) return "out_of_share";
+    if (s >= 500 && s <= 599) return "busy";
+    return "unexpected";
+  };
+
+  /* Show a friendly message in a status box. kind defaults to "err". */
+  errors.show = function (el, type, vars, kind) {
+    var f = errors.friendly(type, vars);
+    dd.ui.status(el, kind || "err", f.title, f.help);
+    return f;
+  };
+
+  /* ---------- raw detail for support only ---------- */
+  var log = [];
+  /* Anything that looks like a code or secret is masked before it's stored or shown.
+     Three layers, so it never depends on one company's code format:
+       1. the buyer's actual saved codes, wherever they appear (modules register them below);
+       2. any long run of letters and digits that mixes upper case, lower case and digits:
+          real codes from every company look like that, while model names, dates, addresses
+          and messages don't;
+       3. known code formats and the usual places codes travel (key=, Bearer, x-api-key,
+          the "k" piece of a phone-pairing link), as a backstop. */
+  var secretSources = [];
+  errors.addSecrets = function (fn) { secretSources.push(fn); };
+  function knownSecrets() {
+    var out = [];
+    secretSources.forEach(function (fn) { try { (fn() || []).forEach(function (s) { if (s && String(s).length >= 8) out.push(String(s)); }); } catch (e) {} });
+    return out.sort(function (a, b) { return b.length - a.length; });
+  }
+  function keep4(m) { return m.slice(0, 4) + "…[hidden]"; }
+  function scrub(s) {
+    s = String(s);
+    knownSecrets().forEach(function (code) { s = s.split(code).join(keep4(code)); });
+    return s
+      .replace(/([?&](?:key|api_?key|token|access_token)=)[^&\s"']+/gi, "$1[hidden]")
+      .replace(/(Bearer\s+)[^\s"',;]{8,}/gi, "$1[hidden]")
+      .replace(/((?:x-api-key|x-goog-api-key|api_?key|apikey)["']?\s*[:=]\s*["']?)[^\s"',;]{8,}/gi, "$1[hidden]")
+      .replace(/([#&~]dd=1~[^~\s]*~[^~\s]*(?:~[^~\s]*)*?~k)[^~\s"']+/g, "$1[hidden]")
+      .replace(/\b(?:AQ\.|AIza|sk-|gsk_|xai-|pk-|or-)[0-9A-Za-z_.\-]{12,}/g, keep4)
+      .replace(/[0-9A-Za-z_.\-]{24,}/g, function (m) {
+        return /[a-z]/.test(m) && /[A-Z]/.test(m) && /[0-9]/.test(m) ? keep4(m) : m;
+      });
+  }
+  errors.scrub = scrub;
+
+  errors.record = function (where, detail) {
+    var text = detail instanceof Error ? (detail.name + ": " + detail.message) :
+               (typeof detail === "object" && detail !== null) ? safeJson(detail) : String(detail);
+    log.unshift({ when: new Date().toLocaleTimeString(), where: String(where), detail: scrub(text).slice(0, 600) });
+    if (log.length > 10) log.length = 10;
+  };
+  errors.recent = function () { return log.slice(); };
+  function safeJson(o) { try { return JSON.stringify(o); } catch (e) { return String(o); } }
+
+  // Catch anything that slips through so support can see it. The buyer sees nothing scary.
+  window.addEventListener("error", function (e) { errors.record("page", (e && e.message) || "error"); });
+  window.addEventListener("unhandledrejection", function (e) { errors.record("promise", (e && e.reason) || "rejected"); });
+})();
+
+/* ---- dd.ui.js ---- */
+/* ===== DigiDoughnut Platform · dd.ui =====
+   Page frame (header, footer), status boxes, top-of-page notices, sheets, toasts and a
+   friendly confirm(). Programs use these instead of alert()/confirm() so every program
+   looks and behaves the same. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var ui = dd.ui = {};
+
+  ui.$ = function (id) { return document.getElementById(id); };
+  ui.esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+
+  /* ---------- frame ---------- */
+  ui.mount = function (program) {
+    if (program.accent) ui.setAccent(program.accent);
+    ui.$("dd-top").innerHTML =
+      '<div><h1>' + ui.esc(program.name) + '</h1>' + (program.tagline ? '<div class="dd-tag">' + ui.esc(program.tagline) + '</div>' : "") + '</div>' +
+      '<div class="dd-spacer"></div><div class="dd-slot" id="dd-top-slot"></div>';
+    ui.$("dd-footer").innerHTML =
+      '<p>Made with care by DigiDoughnut · ' + ui.esc(program.name) + ' ' + ui.esc(program.version) + '</p>' +
+      '<p>Your numbers are stored on this device. <button class="dd-linkbtn dd-foot-link" id="dd-privacy-link">Privacy</button></p>';
+    var link = ui.$("dd-privacy-link");
+    link.addEventListener("click", function (e) { e.stopPropagation(); ui.privacy(); });
+  };
+
+  /* "What this program connects to": every outside connection, in plain words.
+     Oran's rule: no silent phone-home, so the noticeboard check is spelled out here. */
+  ui.privacy = function () {
+    var p = dd.getProgram ? dd.getProgram() : null, name = p ? p.name : "This program";
+    var ai = dd.ai && dd.ai.providers && dd.ai.providers.google;
+    var sh = ui.sheet('<h2>What ' + ui.esc(name) + ' connects to</h2>' +
+      '<p><b>Your numbers</b> are stored in this browser, on this device. DigiDoughnut never sees them.</p>' +
+      '<p><b>The helper.</b> When you use an AI feature, your question and the numbers it needs go to Google, using your own free access code. ' +
+        (ai ? ui.esc(ai.privacyNote) : "") + '</p>' +
+      '<p><b>Live sync</b> (only if you turn it on) keeps a copy in your own private Firebase database that only you can open.</p>' +
+      '<p><b>The DigiDoughnut noticeboard.</b> Once a week, ' + ui.esc(name) + ' checks the DigiDoughnut noticeboard for updated help links and notices. ' +
+        'It only downloads a small file. Your numbers, your code and anything you type are never sent.</p>' +
+      '<div class="dd-btnrow"><button class="dd-btn" data-close>Close</button></div>');
+    sh.querySelector("[data-close]").addEventListener("click", ui.closeSheet);
+  };
+
+  /* Set the program's accent colour, with a darker shade for hover. */
+  ui.setAccent = function (hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+    var r = document.documentElement.style;
+    r.setProperty("--dd-brand", hex);
+    r.setProperty("--dd-brand-d", shade(hex, -0.15));
+    r.setProperty("--dd-brand-soft", mix(hex, 0.9));
+    r.setProperty("--dd-brand-soft-d", mix(hex, 0.82));
+  };
+  function rgb(hex) { return [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); }); }
+  function toHex(a) { return "#" + a.map(function (v) { v = Math.max(0, Math.min(255, Math.round(v))); return (v < 16 ? "0" : "") + v.toString(16); }).join(""); }
+  function shade(hex, f) { return toHex(rgb(hex).map(function (v) { return v * (1 + f); })); }
+  function mix(hex, towardWhite) { return toHex(rgb(hex).map(function (v) { return v + (255 - v) * towardWhite; })); }
+
+  /* ---------- status box: kind = ok | err | warn | info ---------- */
+  ui.status = function (el, kind, title, help) {
+    if (typeof el === "string") el = ui.$(el);
+    if (!el) return;
+    el.className = "dd-status show " + kind;
+    el.setAttribute("role", kind === "err" ? "alert" : "status");
+    el.innerHTML = help ? "<b>" + ui.esc(title) + "</b><br>" + ui.esc(help) : ui.esc(title);
+  };
+  ui.clearStatus = function (el) { if (typeof el === "string") el = ui.$(el); if (el) { el.className = "dd-status"; el.textContent = ""; } };
+
+  /* ---------- notices: one per id, shown at the top of the page ---------- */
+  ui.notice = function (id, text, kind, buttons) {
+    var host = ui.$("dd-notices"); if (!host) return;
+    var box = ui.$("dd-notice-" + id);
+    if (!box) { box = document.createElement("div"); box.id = "dd-notice-" + id; host.appendChild(box); }
+    box.className = "dd-notice " + (kind || "info");
+    box.innerHTML = '<div class="dd-notice-text">' + ui.esc(text) + '</div>';
+    if (buttons && buttons.length) {
+      var row = document.createElement("div"); row.className = "dd-btnrow";
+      buttons.forEach(function (b) {
+        var btn = document.createElement("button");
+        btn.className = "dd-btn small" + (b.primary ? "" : " ghost");
+        btn.textContent = b.label;
+        btn.addEventListener("click", b.onClick);
+        row.appendChild(btn);
+      });
+      box.appendChild(row);
+    }
+  };
+  ui.clearNotice = function (id) { var b = ui.$("dd-notice-" + id); if (b) b.remove(); };
+
+  /* ---------- sheet (modal) ----------
+     ui.sheet(html) opens a sheet; returns the sheet element. Esc or tapping outside closes it. */
+  var openSheet = null, lastFocus = null;
+  ui.sheet = function (html, opts) {
+    opts = opts || {};
+    ui.closeSheet();
+    lastFocus = document.activeElement;
+    var overlay = document.createElement("div");
+    overlay.className = "dd-overlay";
+    overlay.innerHTML = '<div class="dd-sheet" role="dialog" aria-modal="true">' + html + '</div>';
+    overlay.addEventListener("click", function (e) { if (e.target === overlay && !opts.sticky) ui.closeSheet(); });
+    ui.$("dd-layer").appendChild(overlay);
+    openSheet = { el: overlay, onClose: opts.onClose };
+    // On a phone, focusing a text box pops the keyboard over the sheet: focus a button instead.
+    var first = overlay.querySelector(dd.env && dd.env.isPhone ? "button, a[href]" : "button, input, textarea, select, a[href]");
+    if (first) first.focus();
+    return overlay.firstChild;
+  };
+  ui.closeSheet = function () {
+    if (!openSheet) return;
+    var s = openSheet; openSheet = null;
+    s.el.remove();
+    if (s.onClose) try { s.onClose(); } catch (e) {}
+    if (lastFocus && lastFocus.focus) try { lastFocus.focus(); } catch (e) {}
+  };
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openSheet) ui.closeSheet(); });
+
+  /* ---------- confirm: friendly Yes/No, returns a Promise<boolean> ---------- */
+  ui.confirm = function (title, body, yesLabel, noLabel, danger) {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish(v) { if (done) return; done = true; ui.closeSheet(); resolve(v); }
+      var sh = ui.sheet('<h2>' + ui.esc(title) + '</h2>' + (body ? '<p>' + ui.esc(body) + '</p>' : "") +
+        '<div class="dd-btnrow"><button class="dd-btn ghost" data-no>' + ui.esc(noLabel || "No, keep it") + '</button>' +
+        '<button class="dd-btn' + (danger ? " danger" : "") + '" data-yes>' + ui.esc(yesLabel || "Yes") + '</button></div>',
+        { onClose: function () { finish(false); } });
+      sh.querySelector("[data-yes]").addEventListener("click", function () { finish(true); });
+      sh.querySelector("[data-no]").addEventListener("click", function () { finish(false); });
+    });
+  };
+
+  /* ---------- toast: short confirmation that fades out ---------- */
+  var toastTimer = null;
+  ui.toast = function (text, ms) {
+    var old = document.querySelector(".dd-toast"); if (old) old.remove();
+    var t = document.createElement("div");
+    t.className = "dd-toast"; t.setAttribute("role", "status"); t.textContent = text;
+    ui.$("dd-layer").appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.remove(); }, ms || 2600);
+  };
+
+  /* ---------- formatting helpers ---------- */
+  ui.money = function (n) {
+    n = Number(n) || 0;
+    return (n < 0 ? "-$" : "$") + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+  ui.isoDate = function (d) { d = d || new Date(); var p = function (n) { return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); };
+  ui.uid = function (prefix) {
+    var b = new Uint8Array(6);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(b); else for (var i = 0; i < 6; i++) b[i] = Math.random() * 256;
+    return (prefix || "i") + Date.now().toString(36) + Array.prototype.map.call(b, function (x) { return (x < 16 ? "0" : "") + x.toString(16); }).join("");
+  };
+})();
+
+/* ---- dd.diag.js ---- */
+/* ===== DigiDoughnut Platform · dd.diag =====
+   Hidden support tool. Triple-click (or triple-tap) the footer to open a report that support
+   can read from one screenshot, with a Copy button. Codes and keys are never shown.
+   Other modules add their own section: dd.diag.addSection("Sync", function () { return ["State: on", ...]; }) */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var diag = dd.diag = {};
+  var sections = [];
+
+  diag.addSection = function (title, fn) { sections.push({ title: title, fn: fn }); };
+
+  function core() {
+    var p = dd.getProgram && dd.getProgram();
+    var b = window.DD_BUILD || {};
+    var e = dd.env || {};
+    var out = [];
+    out.push("--- Program ---");
+    out.push((p ? p.name + " " + p.version + " (data v" + p.schemaVersion + ")" : "not started") +
+             " · platform " + (b.platform || "dev") + " · built " + (b.built || "-") + " " + (b.commit || ""));
+    out.push("--- Page ---");
+    out.push((e.isFile ? "Opened from a file on this computer" : "Hosted at " + location.host) +
+             (e.isStandalone ? " · Home Screen app" : " · browser tab"));
+    out.push("--- Device ---");
+    out.push((e.isIOS ? "iPhone/iPad" : e.isAndroid ? "Android" : e.isPhone ? "phone" : "computer") +
+             " · screen " + screen.width + "×" + screen.height + " · " + (navigator.onLine ? "online" : "offline"));
+    out.push(navigator.userAgent);
+    out.push("--- Storage ---");
+    out.push("Saving works: " + (dd.store.available() ? "yes" : "NO") +
+             " · keep-storage request: " + dd.store.persisted +
+             (p ? " · data " + dd.store.dataBytes(p.id) + " bytes" + (dd.isExample() ? " (example)" : "") : ""));
+    if (p && dd.store.get(dd.store.programKey(p.id, "data_recovery")) != null) out.push("A recovery copy of older data is saved on this device.");
+    out.push("--- Last problems (newest first) ---");
+    var log = dd.errors.recent();
+    if (!log.length) out.push("No problems recorded. Everything's talking fine.");
+    log.forEach(function (r) { out.push(r.when + " · " + r.where + " · " + r.detail); });
+    return out;
+  }
+
+  diag.text = function () {
+    var lines = core();
+    sections.forEach(function (s) {
+      lines.push("--- " + s.title + " ---");
+      try { lines = lines.concat(s.fn()); } catch (e) { lines.push("(couldn't read: " + e.message + ")"); }
+    });
+    return dd.errors.scrub(lines.join("\n"));
+  };
+
+  diag.open = function () {
+    var text = diag.text();
+    var sh = dd.ui.sheet('<h2>Support details</h2>' +
+      '<p class="dd-note">If DigiDoughnut support asked for this, take a screenshot or tap Copy and paste it into your message.</p>' +
+      '<pre id="dd-diag-text"></pre>' +
+      '<div class="dd-btnrow"><button class="dd-btn" data-copy>Copy</button><button class="dd-btn ghost" data-close>Close</button></div>');
+    sh.querySelector("#dd-diag-text").textContent = text;
+    sh.querySelector("[data-close]").addEventListener("click", dd.ui.closeSheet);
+    sh.querySelector("[data-copy]").addEventListener("click", function () {
+      copyText(text).then(function (ok) { dd.ui.toast(ok ? "Copied." : "Couldn't copy. A screenshot works too."); });
+    });
+  };
+
+  function copyText(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).then(function () { return true; }, fallback);
+    return Promise.resolve(fallback());
+    function fallback() {
+      var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove(); return ok;
+    }
+  }
+
+  /* Three clicks/taps on the footer within 600 ms. */
+  var attached = false;
+  diag.attach = function () {
+    if (attached) return;
+    var foot = document.getElementById("dd-footer"); if (!foot) return;
+    if (!foot.textContent.trim()) foot.innerHTML = "<p>Made with care by DigiDoughnut</p>";
+    attached = true;
+    var n = 0, t = null;
+    foot.addEventListener("click", function () {
+      n++; clearTimeout(t); t = setTimeout(function () { n = 0; }, 600);
+      if (n >= 3) { n = 0; diag.open(); }
+    });
+  };
+})();
+
+/* ---- dd.pair.js ---- */
+/* ===== DigiDoughnut Platform · dd.pair — send setup to your phone by QR =====
+   The computer shows a QR code. The phone's camera opens the program's own web address with
+   the setup packed into the part after "#", which browsers never send to any server
+   (not even tiiny.host). The phone unpacks it once and forgets the link.
+
+   What can travel (each module adds its own piece with dd.pair.register):
+     k  the AI code            (dd.ai; on by default, with a switch to leave it out)
+     d  the program's numbers  (dd.core; only while small enough to keep the QR simple)
+     s/f sync details          (Phase 5, dd.sync)
+   Packing, as short as possible so the QR stays simple and scans fast:
+     #dd=1~<time>~<id>~k<code>~d*<base64url of JSON>
+   Plain text pieces (like the code) travel as-is; anything else as base64url JSON marked "*".
+   Safety: every QR has a time stamp and a one-time ID. It stops working after 10 minutes,
+   and each one can be used once. Pairing from a file on the computer is refused kindly:
+   the phone can't open a file that lives on the computer. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var pair = dd.pair = {};
+  var USED_KEY = "dd_pair_used_v1", LIFE_S = 600, SKEW_S = 300;
+  var MAX_LINK = 900;          // above this the QR gets dense; numbers are left out instead
+  var pieces = [];             // {key, label, give(opts) -> value|undefined, take(value, ctx)}
+  var last = { made: null, received: null };
+
+  pair.register = function (piece) { pieces.push(piece); };
+
+  /* ---------- packing ---------- */
+  function b64urlEncode(str) {
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function b64urlDecode(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    var bin = atob(s), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function newId() {   // 6 random base-36 characters (about 2 billion possibilities)
+    var b = new Uint32Array(1); crypto.getRandomValues(b);
+    return ("00000" + (b[0] % 2176782336).toString(36)).slice(-6);
+  }
+  var PLAIN = /^[A-Za-z0-9_.:\-]+$/;   // safe after "#" without escaping, and contains no "~"
+  function pack(payload) {
+    var out = ["1", payload.t, payload.i];
+    Object.keys(payload).forEach(function (k) {
+      if (k === "v" || k === "t" || k === "i") return;
+      var v = payload[k];
+      out.push(k + (typeof v === "string" && PLAIN.test(v) ? v : "*" + b64urlEncode(JSON.stringify(v))));
+    });
+    return out.join("~");
+  }
+  function unpack(s) {
+    var parts = s.split("~");
+    if (parts[0] !== "1" || parts.length < 3) return null;
+    var payload = { v: 1, t: parts[1], i: parts[2] };
+    parts.slice(3).forEach(function (piece) {
+      var k = piece.charAt(0), rest = piece.slice(1);
+      payload[k] = rest.charAt(0) === "*" ? JSON.parse(b64urlDecode(rest.slice(1))) : rest;
+    });
+    return payload;
+  }
+  pair._unpack = unpack;
+  function baseUrl() { return location.href.split("#")[0]; }
+
+  /* Build the link. opts = {includeCode:true, base:"https://…" (default: this page),
+     maxLink: characters (default: small enough for a simple QR)}.
+     Returns {link, included:[keys], left:[labels]}. The Setup Center uses base + a large
+     maxLink to carry everything from the file on the computer to its new web address. */
+  pair.makeLink = function (opts) {
+    opts = opts || {};
+    var base = (opts.base || baseUrl()).split("#")[0], max = opts.maxLink || MAX_LINK;
+    function link(payload) { return base + "#dd=" + pack(payload); }
+    var payload = { v: 1, t: Math.floor(Date.now() / 1000).toString(36), i: newId() };
+    var included = [], left = [];
+    // Small, essential pieces first; the program's numbers last (they're the optional extra).
+    pieces.slice().sort(function (a, b) { return (a.optional ? 1 : 0) - (b.optional ? 1 : 0); }).forEach(function (p) {
+      var v; try { v = p.give(opts); } catch (e) { dd.errors.record("pair.give:" + p.key, e); }
+      if (v === undefined || v === null) return;
+      payload[p.key] = v;
+      if (p.optional && link(payload).length > max) { delete payload[p.key]; left.push(p.label); return; }
+      included.push(p.key);
+    });
+    var out = link(payload);
+    last.made = { at: new Date().toLocaleTimeString(), size: out.length, parts: included.join(",") || "none" };
+    return { link: out, included: included, left: left, expiresAt: (parseInt(payload.t, 36) + LIFE_S) * 1000 };
+  };
+
+  /* ---------- QR drawing (vendored qrcode-generator, fixed cell size: never scalable:true) ---------- */
+  pair.qrSvg = function (text, maxPx) {
+    // Medium error correction while the QR stays small; otherwise Low, which keeps it simpler
+    // (screens don't get scratched, so Low scans fine).
+    var qr = qrcode(0, "M"); qr.addData(text, "Byte"); qr.make();
+    if (qr.getModuleCount() > 41) { qr = qrcode(0, "L"); qr.addData(text, "Byte"); qr.make(); }
+    var n = qr.getModuleCount();
+    var cell = Math.max(3, Math.min(8, Math.floor((maxPx || 280) / (n + 8))));
+    return { svg: qr.createSvgTag({ cellSize: cell, margin: cell * 4 }), modules: n };
+  };
+
+  /* ---------- the "Send to my phone" sheet ---------- */
+  var timer = null;
+  pair.open = function () {
+    if (dd.env.isFile) {
+      var s1 = dd.ui.sheet('<h2>Send to your phone</h2>' +
+        '<p>Your phone can\'t open a file that lives on this computer. Put the program online first (Setup step 3), then open it from its web address and tap this again.</p>' +
+        '<div class="dd-btnrow"><button class="dd-btn" data-close>OK</button></div>');
+      s1.querySelector("[data-close]").addEventListener("click", dd.ui.closeSheet);
+      return;
+    }
+    var hasCode = dd.ai && dd.ai.hasCode();
+    var sh = dd.ui.sheet('<h2>Send to your phone</h2>' +
+      '<p class="dd-note" style="margin-top:0">Open your phone\'s camera and point it at this square. Tap the link that appears.</p>' +
+      '<div class="dd-qr" id="dd-qr"></div>' +
+      '<p class="dd-qr-timer" id="dd-qr-timer"></p>' +
+      (hasCode ? '<label class="dd-check"><input type="checkbox" id="dd-qr-code" checked> Include my free access code, so the phone is ready to use</label>' +
+                 '<p class="dd-note" id="dd-qr-warn">This square contains your access code. Only scan it with your own phone, and close this when you\'re done.</p>' : "") +
+      '<p class="dd-note" id="dd-qr-left"></p>' +
+      '<div class="dd-btnrow"><button class="dd-btn ghost" data-new>Make a new code</button><button class="dd-btn" data-close>Done</button></div>',
+      { onClose: function () { clearInterval(timer); } });
+    sh.querySelector("[data-close]").addEventListener("click", dd.ui.closeSheet);
+    sh.querySelector("[data-new]").addEventListener("click", draw);
+    var box = sh.querySelector("#dd-qr-code");
+    if (box) box.addEventListener("change", draw);
+    draw();
+
+    function draw() {
+      var include = box ? box.checked : false;
+      var made = pair.makeLink({ includeCode: include });
+      var q = pair.qrSvg(made.link, Math.min(300, window.innerWidth - 80));
+      sh.querySelector("#dd-qr").innerHTML = q.svg;
+      var warn = sh.querySelector("#dd-qr-warn"); if (warn) warn.style.display = include ? "" : "none";
+      sh.querySelector("#dd-qr-left").textContent = made.left.length
+        ? "Your " + made.left.join(" and ") + " are too much for one square, so they stay here. Turn on Live sync or use Backup to move them." : "";
+      clearInterval(timer);
+      var tick = function () {
+        var s = Math.round((made.expiresAt - Date.now()) / 1000), el = sh.querySelector("#dd-qr-timer");
+        if (!el) { clearInterval(timer); return; }
+        if (s <= 0) {
+          clearInterval(timer);
+          sh.querySelector("#dd-qr").innerHTML = '<p class="dd-qr-expired">This code expired. Tap <b>Make a new code</b>.</p>';
+          el.textContent = "";
+          return;
+        }
+        el.textContent = "Works for " + Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60) + " more, one phone only.";
+      };
+      tick(); timer = setInterval(tick, 1000);
+    }
+  };
+
+  /* ---------- the phone side: unpack once, then forget the link ---------- */
+  pair.receive = function () {
+    var m = location.hash.match(/[#&]dd=([^&]+)/);
+    if (!m) return null;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}   // never leave the code in the address bar
+    var payload;
+    try { payload = unpack(decodeURIComponent(m[1])); if (!payload) throw new Error("bad"); } catch (e) {
+      dd.errors.record("pair.receive", "unreadable pairing link");
+      dd.ui.notice("pair", "That pairing link didn't come through completely. Make a new code on your computer and scan it again.", "warn");
+      return { ok: false, why: "unreadable" };
+    }
+    if (!payload || payload.v !== 1) return { ok: false, why: "version" };
+    var made = parseInt(payload.t, 36), now = Date.now() / 1000;
+    if (!(made > 0) || now - made > LIFE_S || made - now > SKEW_S) {
+      dd.ui.notice("pair", "This pairing code expired. Make a new one on your computer and scan again.", "warn");
+      last.received = { at: new Date().toLocaleTimeString(), result: "expired" };
+      return { ok: false, why: "expired" };
+    }
+    var used = dd.store.getJSON(USED_KEY) || [];
+    if (used.indexOf(payload.i) >= 0) {
+      dd.ui.notice("pair", "This pairing code was already used on this phone. Make a new one on your computer if you need to send again.", "warn");
+      last.received = { at: new Date().toLocaleTimeString(), result: "already used" };
+      return { ok: false, why: "used" };
+    }
+    dd.store.setJSON(USED_KEY, used.concat(payload.i).slice(-30));
+    var got = [];
+    pieces.forEach(function (p) {
+      if (!(p.key in payload)) return;
+      try { if (p.take(payload[p.key]) !== false) got.push(p.label); } catch (e) { dd.errors.record("pair.take:" + p.key, e); }
+    });
+    last.received = { at: new Date().toLocaleTimeString(), result: got.length ? "got " + got.join(", ") : "nothing new" };
+    dd.ui.clearNotice("pair");
+    if (got.length) dd.ui.toast("Your " + got.join(" and ") + " came across from your computer.", 4000);
+    dd.emit("pair:received", { got: got });
+    return { ok: true, got: got };
+  };
+
+  // Scanning again while the program is already open in that tab only changes the part after
+  // "#", which doesn't reload the page: catch that too.
+  window.addEventListener("hashchange", function () { if (/[#&]dd=/.test(location.hash) && dd.getProgram && dd.getProgram()) pair.receive(); });
+
+  if (dd.diag) dd.diag.addSection("Phone pairing", function () {
+    return ["Last code made: " + (last.made ? last.made.at + " · " + last.made.size + " characters · carried " + last.made.parts : "none this visit"),
+            "Last code received: " + (last.received ? last.received.at + " · " + last.received.result : "none this visit")];
+  });
+})();
+
+/* ---- dd.ai.js ---- */
+/* ===== DigiDoughnut Platform · dd.ai =====
+   The AI connection layer. Programs never call an AI company directly: they call
+   dd.ai.chat() / dd.ai.connect(), and this module picks the code, the model and the adapter.
+
+   - Provider registry: each company is a small data entry. Launch lineup: Google only
+     (Oran, 2026-10-06). Adding a company later = a registry entry (+ an adapter if it speaks
+     a new dialect). API addresses live HERE, in the program, never in the noticeboard file.
+   - Neutral tools: programs declare tools once ({name, description, params}); the adapter
+     writes the company's schema. Nobody hand-writes Gemini schemas, so the old
+     "required goes inside parameters" bug can't come back.
+   - Hard limits: 30 s per request, 60 s and 5 tool rounds per turn, Stop at any time.
+     The endless "thinking…" can't happen.
+   - Every failure maps to one of dd.errors' seven friendly types.
+
+   Facts below were checked against Google's docs on 2026-10-06 (models, free tier, errors).
+   The buyer never sees a model name; the diagnostic does. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var ai = dd.ai = {};
+
+  // request: one model, when it's the last one left · perModel: one model while others remain
+  // turn: everything the helper does for one message · rounds: tool round-trips per message
+  ai.limits = { request: 30000, perModel: 12000, turn: 90000, rounds: 5 };   // tests shrink these
+  var CONN_KEY = "dd_ai_connections_v1", MODELS_KEY = "dd_ai_models_v1", LEGACY_KEY = "dd_gemini_key_v1";
+  var RECHECK_MS = 7 * 24 * 3600 * 1000;
+  var BUSY_MS = 10 * 60 * 1000;   // a model that just failed is tried last for 10 minutes
+
+  /* ---------- provider registry ---------- */
+  ai.providers = {
+    google: {
+      id: "google", label: "Google", adapter: "gemini",
+      // Only a HINT for which company a pasted code belongs to: Google decides whether it works.
+      // "AQ." = auth keys (all AI Studio has made since 2026-05-28); "AIza" = older keys being
+      // retired. Anything else still goes to the default company, never refused on its looks.
+      codePattern: /^(AQ\.|AIza)/,
+      getCodeUrl: "https://aistudio.google.com/apikey",   // overridable via noticeboard helpLinks.getCode_google
+      base: "https://generativelanguage.googleapis.com/v1beta",
+      free: true,
+      // Model picking hints: never shown to the buyer.
+      exclude: /(tts|live|audio|transcri|image|banana|embed|robotics|veo|lyria|imagen|research|aqa|gemma|computer|learnlm|thinking-exp|antigravity|customtools)/i,
+      privacyNote: "Google may use what you send through its free plan to improve its products, and people at Google may read it. Don't put anything private in your messages to the helper."
+    }
+  };
+
+  ai.defaultProvider = "google";   // launch lineup: Google only
+
+  /* The "get a free code" page for a company (noticeboard can update it). */
+  ai.getCodeLink = function (id) {
+    var p = ai.providers[id || "google"];
+    return dd.notes ? dd.notes.link("getCode_" + p.id, p.getCodeUrl) : p.getCodeUrl;
+  };
+
+  /* Which company does a pasted code belong to? Returns a provider id or null. */
+  ai.detectProvider = function (code) {
+    code = String(code || "").trim();
+    var hints = (dd.notes && dd.notes.get("codePatterns")) || {};
+    for (var id in ai.providers) {
+      var p = ai.providers[id];
+      var re = p.codePattern;
+      if (hints[id]) try { re = new RegExp(hints[id]); } catch (e) {}
+      if (re.test(code)) return id;
+    }
+    return null;
+  };
+
+  /* Tidy what people paste: stray spaces, quotes, "key=" prefixes, line breaks. */
+  ai.cleanCode = function (raw) {
+    return String(raw || "").replace(/[\s​-‍﻿]+/g, "").replace(/^["'`]+|["'`]+$/g, "").replace(/^(?:key|api_?key)=/i, "");
+  };
+
+  /* ---------- saved connections ----------
+     dd_ai_connections_v1 = { main: {provider, code, savedAt}, backup: null }
+     Shared by every program on the same web address. The code sits in this browser's storage,
+     which is NOT encrypted; we never claim it is. */
+  function loadConns() {
+    var c = dd.store.getJSON(CONN_KEY);
+    if (!c || typeof c !== "object") c = { main: null, backup: null };
+    // Profit Coach POC kept a bare Gemini key: move it across once.
+    if (!c.main) {
+      var legacy = dd.store.get(LEGACY_KEY);
+      if (legacy) {
+        c.main = { provider: "google", code: legacy, savedAt: new Date().toISOString(), migrated: true };
+        if (dd.store.setJSON(CONN_KEY, c).ok) { dd.store.remove(LEGACY_KEY); dd.store.remove("dd_gemini_model_v1"); }
+      }
+    }
+    return c;
+  }
+  /* Every code this browser knows about is hidden from the support report, whatever its format. */
+  var pendingCode = null;   // the code being checked by connect(), before it's saved
+  dd.errors.addSecrets(function () {
+    var c = dd.store.getJSON(CONN_KEY) || {}, out = [pendingCode, dd.store.get(LEGACY_KEY)];
+    ["main", "backup"].forEach(function (k) { if (c[k] && c[k].code) out.push(c[k].code); });
+    return out;
+  });
+  ai.hasCode = function () { var c = loadConns(); return !!(c.main && c.main.code); };
+  ai.connection = function () { var c = loadConns().main; return c ? { provider: c.provider, label: ai.providers[c.provider] ? ai.providers[c.provider].label : c.provider, hint: mask(c.code) } : null; };
+  ai.forget = function () {
+    dd.store.remove(CONN_KEY); dd.store.remove(MODELS_KEY); dd.store.remove(LEGACY_KEY);
+    dd.emit("ai:changed", { connected: false });
+  };
+  function mask(code) { return code && code.length > 4 ? "…" + code.slice(-4) : ""; }
+
+  /* ---------- model cache ---------- */
+  function models() { return dd.store.getJSON(MODELS_KEY) || {}; }
+  function saveModels(m) { dd.store.setJSON(MODELS_KEY, m); }
+
+  /* Rank model ids: stable Flash first, newest first, then Flash-Lite, then previews; Pro last
+     (no free tier as of 2026-10-06). Noticeboard hints can prefer or avoid specific ids. */
+  ai.rankModels = function (provider, ids) {
+    var p = ai.providers[provider];
+    var hints = (dd.notes && dd.notes.get("modelHints") || {})[provider] || {};
+    var avoid = hints.avoid || [], prefer = hints.prefer || [];
+    function ver(id) { var m = id.match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; }
+    function score(id) {
+      var s = 0;
+      if (prefer.indexOf(id) >= 0) s += 1000;
+      if (/flash/i.test(id) && !/lite/i.test(id)) s += 300;
+      else if (/flash-?lite/i.test(id)) s += 200;
+      else if (/pro/i.test(id)) s += 50;
+      if (/preview|exp|latest/i.test(id)) s -= 150;
+      return s + ver(id);
+    }
+    var ranked = ids.filter(function (id) { return !p.exclude.test(id) && avoid.indexOf(id) < 0; })
+                    .sort(function (a, b) { return score(b) - score(a); });
+    // Alternate Flash and Flash-Lite. When Google overloads one family ("high demand", seen
+    // on 3.6-3.8 Flash in Sept-Oct 2026) the other usually still answers, so the fallback
+    // after the first busy model should be a Flash-Lite, not the next Flash.
+    var flash = ranked.filter(function (id) { return /flash/i.test(id) && !/lite/i.test(id) && prefer.indexOf(id) < 0; });
+    var lite = ranked.filter(function (id) { return /flash-?lite/i.test(id) && prefer.indexOf(id) < 0; });
+    var head = ranked.filter(function (id) { return prefer.indexOf(id) >= 0; });
+    var rest = ranked.filter(function (id) { return head.indexOf(id) < 0 && flash.indexOf(id) < 0 && lite.indexOf(id) < 0; });
+    var mixed = head.slice();
+    for (var i = 0; i < Math.max(flash.length, lite.length); i++) {
+      if (flash[i]) mixed.push(flash[i]);
+      if (lite[i]) mixed.push(lite[i]);
+    }
+    return mixed.concat(rest);
+  };
+
+  /* ---------- low-level request with timeout + Stop ---------- */
+  var current = null;   // the AbortController of the request in flight
+  ai.stop = function () { stopped = true; if (current) try { current.abort(); } catch (e) {} };
+  var stopped = false;
+
+  /* Test drills (AI test page only): while ai.drill is set, every request behaves as if
+     Google ran out of free share, went silent, or the internet dropped. The page clears it. */
+  ai.drill = null;
+  function drilled(ms, ctl) {
+    var d = ai.drill;
+    if (d === "offline") return Promise.resolve({ status: 0, network: true, error: "drill: offline" });
+    if (d === "out_of_share") return Promise.resolve({ status: 429, ok: false, text: "", body: { error: { code: 429, status: "RESOURCE_EXHAUSTED",
+      message: "drill: quota exceeded", details: [{ "@type": "type.googleapis.com/google.rpc.QuotaFailure", violations: [{ quotaId: "GenerateRequestsPerDayPerProjectPerModel-FreeTier" }] }] } } });
+    if (d === "timeout") return new Promise(function (resolve) {
+      var t = setTimeout(function () { resolve({ status: -1, timeout: true }); }, ms);
+      ctl.signal.addEventListener("abort", function () { clearTimeout(t); resolve({ status: -1, stopped: true }); });
+    });
+    return null;
+  }
+
+  /* Timing log for support: the last 8 requests, newest first. No codes, no content. */
+  var reqLog = [];
+  ai.requestLog = function () { return reqLog.slice(); };
+  function logStart(url) {
+    var what = /\/models\?/.test(url) || /\/models$/.test(url.split("?")[0]) ? "list" : "send";
+    var m = url.match(/\/models\/([^:?]+):/);
+    var entry = { at: new Date().toLocaleTimeString(), what: what, model: m ? decodeURIComponent(m[1]) : "", secs: "…", outcome: "waiting for Google" };
+    reqLog.unshift(entry);
+    if (reqLog.length > 8) reqLog.length = 8;
+    return entry;
+  }
+  function logRequest(url, started, r, entry) {
+    var m = url.match(/\/models\/([^:?]+):/), what = entry.what;
+    entry.outcome = r.timeout ? "TIMED OUT" : r.stopped ? "stopped" : r.network ? "no connection" : String(r.status);
+    entry.secs = ((Date.now() - started) / 1000).toFixed(1);
+    if (r.timeout) dd.errors.record("ai " + what + (m ? " " + decodeURIComponent(m[1]) : ""), "no answer within " + ((Date.now() - started) / 1000).toFixed(0) + " s");
+  }
+
+  function request(url, opts, ms) {
+    var started = Date.now(), entry = logStart(url);
+    var ctl = new AbortController(); current = ctl;
+    var d = ai.drill && drilled(ms, ctl);
+    if (d) return d.then(function (r) { logRequest(url, started, r, entry); return r; }).finally(function () { if (current === ctl) current = null; });
+    var timer = setTimeout(function () { ctl.timedOut = true; ctl.abort(); }, ms);
+    opts.signal = ctl.signal;
+    return fetch(url, opts).then(function (res) {
+      return res.text().then(function (t) {
+        var body = null; try { body = JSON.parse(t); } catch (e) {}
+        return { status: res.status, ok: res.ok, body: body, text: t, headers: res.headers };
+      });
+    }).catch(function (e) {
+      if (ctl.timedOut) return { status: -1, timeout: true };
+      if (e && e.name === "AbortError") return { status: -1, stopped: true };
+      return { status: 0, network: true, error: String(e && e.message || e) };
+    }).then(function (r) { logRequest(url, started, r, entry); return r; })
+      .finally(function () { clearTimeout(timer); if (current === ctl) current = null; });
+  }
+
+  /* ---------- the Gemini adapter ---------- */
+  var adapters = ai.adapters = {};
+  adapters.gemini = {
+    headers: function (code) { return { "Content-Type": "application/json", "x-goog-api-key": code }; },
+
+    listModels: function (p, code) {
+      var all = [];
+      function page(token) {
+        var url = p.base + "/models?pageSize=200" + (token ? "&pageToken=" + encodeURIComponent(token) : "");
+        return request(url, { method: "GET", headers: adapters.gemini.headers(code) }, ai.limits.request).then(function (r) {
+          if (!r.ok) throw adapters.gemini.problem(r, "list");
+          ((r.body && r.body.models) || []).forEach(function (m) {
+            if ((m.supportedGenerationMethods || []).indexOf("generateContent") >= 0) all.push(String(m.name).replace(/^models\//, ""));
+          });
+          var next = r.body && r.body.nextPageToken;
+          return next && all.length < 2000 ? page(next) : all;
+        });
+      }
+      return page(null);
+    },
+
+    /* Neutral tools -> Gemini functionDeclarations. `required` goes INSIDE `parameters`. */
+    tools: function (tools) {
+      if (!tools || !tools.length) return undefined;
+      return [{ functionDeclarations: tools.map(function (t) {
+        var props = {}, required = [];
+        Object.keys(t.params || {}).forEach(function (k) {
+          var s = t.params[k], o = { type: s.type || "string" };
+          if (s.description) o.description = s.description;
+          if (s.enum) o.enum = s.enum;
+          if (s.type === "array") o.items = s.items || { type: "string" };
+          if (s.type === "object" && s.properties) o.properties = s.properties;
+          props[k] = o;
+          if (!s.optional) required.push(k);
+        });
+        var decl = { name: t.name, description: t.description || t.name, parameters: { type: "object", properties: props } };
+        if (required.length) decl.parameters.required = required;
+        return decl;
+      }) }];
+    },
+
+    /* Neutral history -> Gemini contents. Model turns are sent back exactly as Google sent
+       them (raw parts), which carries any thought signatures newer models require. */
+    contents: function (history) {
+      var out = [];
+      history.forEach(function (h) {
+        if (h.role === "user") out.push({ role: "user", parts: [{ text: h.text }] });
+        else if (h.role === "model") out.push({ role: "model", parts: (h.raw && h.raw.provider === "gemini") ? h.raw.parts : [{ text: h.text || "" }] });
+        else if (h.role === "tool") out.push({ role: "user", parts: h.results.map(function (r) {
+          var fr = { name: r.name, response: { result: r.result } };
+          if (r.id) fr.id = r.id;   // newer models tag each call with an id; echo it back
+          return { functionResponse: fr };
+        }) });
+      });
+      return out;
+    },
+
+    send: function (p, code, model, req) {
+      var body = { contents: adapters.gemini.contents(req.history) };
+      if (req.system) body.systemInstruction = { parts: [{ text: req.system }] };
+      var tools = adapters.gemini.tools(req.tools);
+      if (tools) body.tools = tools;
+      if (req.forceTool) body.toolConfig = { functionCallingConfig: { mode: "ANY", allowedFunctionNames: [req.forceTool] } };
+      return request(p.base + "/models/" + encodeURIComponent(model) + ":generateContent",
+        { method: "POST", headers: adapters.gemini.headers(code), body: JSON.stringify(body) }, req.ms).then(function (r) {
+        if (!r.ok) throw adapters.gemini.problem(r, "send");
+        var cand = r.body && r.body.candidates && r.body.candidates[0];
+        var parts = (cand && cand.content && cand.content.parts) || [];
+        var text = "", calls = [];
+        parts.forEach(function (pt, i) {
+          if (pt.text && !pt.thought) text += pt.text;
+          if (pt.functionCall) calls.push({ id: pt.functionCall.id || null, name: pt.functionCall.name, args: pt.functionCall.args || {} });
+        });
+        if (!parts.length && r.body && r.body.promptFeedback && r.body.promptFeedback.blockReason) text = "";
+        return { text: text.trim(), calls: calls, raw: { provider: "gemini", parts: parts.length ? parts : [{ text: "" }] },
+                 finish: cand && cand.finishReason };
+      });
+    },
+
+    /* Turn a failed response into {type, retry, wait, rediscover}. Only a real bad-key reason
+       says "bad code" (fixes POC problem #6). */
+    problem: function (r, where) {
+      if (r.stopped) return { type: "stopped" };
+      if (r.timeout) return { type: "timeout" };
+      if (r.network) return { type: "offline", raw: r.error };
+      var err = (r.body && r.body.error) || {};
+      var msg = String(err.message || r.text || "");
+      var status = String(err.status || "");
+      var details = JSON.stringify(err.details || "");
+      var raw = "HTTP " + r.status + " " + status + " " + msg.slice(0, 300) + " " + details.slice(0, 200);
+      var out = { raw: raw, status: r.status };
+      var badKey = /API_KEY_INVALID|API key not valid|API key expired|key is missing, invalid|invalid api key/i.test(msg + details);
+      if (r.status === 401 || badKey) out.type = "bad_code";
+      else if (r.status === 404 || /no longer available|is not found|not supported for generateContent|model_not_found/i.test(msg)) { out.type = "unexpected"; out.rediscover = true; }
+      else if (r.status === 403 || /PERMISSION_DENIED|reported as leaked|SERVICE_DISABLED|API_KEY_SERVICE_BLOCKED/i.test(status + msg + details)) out.type = "not_allowed";
+      else if (/location is not supported|FAILED_PRECONDITION/i.test(msg + status)) { out.type = "not_allowed"; out.region = true; }
+      else if (r.status === 429 || r.status === 402) {
+        out.type = "out_of_share";
+        // A per-minute limit clears in seconds: wait and retry once. A daily one doesn't.
+        var perMinute = /PerMinute|per minute|requests per min/i.test(details + msg) && !/PerDay|per day/i.test(details + msg);
+        var m = details.match(/"retryDelay":"(\d+(?:\.\d+)?)s"/);
+        if (perMinute) { out.retry = true; out.wait = Math.min(m ? parseFloat(m[1]) * 1000 : 5000, 15000); }
+      }
+      else if (r.status >= 500 || r.status === 499) { out.type = "busy"; out.retry = true; out.wait = 2500; }
+      else out.type = "unexpected";
+      return out;
+    }
+  };
+
+  /* ---------- model choice ---------- */
+  function pickModel(conn, force) {
+    var p = ai.providers[conn.provider], ad = adapters[p.adapter];
+    var all = models(), m = all[conn.provider];
+    var stale = !m || !m.checkedAt || Date.now() - m.checkedAt > RECHECK_MS;
+    if (m && m.model && !force && !stale && m.order >= 2) return Promise.resolve(m.model);
+    return ad.listModels(p, conn.code).then(function (ids) {
+      var ranked = ai.rankModels(conn.provider, ids);
+      if (!ranked.length) throw { type: "unexpected", raw: "no usable models in list of " + ids.length };
+      // Weekly re-check moves to the best model on the list. If it misbehaves, the next
+      // call falls back down the candidate list on its own.
+      var keep = ranked[0];
+      all[conn.provider] = { model: keep, candidates: ranked, checkedAt: Date.now(), order: 3, busy: (m && m.busy) || {} };
+      saveModels(all);
+      return keep;
+    }).catch(function (e) {
+      // Quiet weekly re-check failed but we still have a model: keep using it.
+      if (m && m.model && !force && !(e && e.type === "bad_code")) return m.model;
+      throw e;
+    });
+  }
+  /* Busy models: Google sometimes refuses a model for a while ("high demand", 503) while its
+     sister models work fine. We remember a busy model for 10 minutes and use the next one. */
+  function firstNotBusy(m) {
+    var busy = m.busy || {}, now = Date.now();
+    var list = [m.model].concat((m.candidates || []).filter(function (id) { return id !== m.model; }));
+    for (var i = 0; i < list.length; i++) if (!(busy[list[i]] > now)) return list[i];
+    return m.model;   // everything busy: try the main one anyway
+  }
+  function markBusy(provider, id) {
+    if (ai.drill) return null;   // pretend failures from the test page leave no trace
+    var all = models(), m = all[provider]; if (!m) return null;
+    m.busy = m.busy || {}; m.busy[id] = Date.now() + BUSY_MS;
+    saveModels(all);
+    var next = firstNotBusy(m);
+    return next !== id ? next : null;
+  }
+  ai._markBusy = markBusy;
+
+  function nextCandidate(provider, failed) {
+    var all = models(), m = all[provider]; if (!m) return null;
+    m.candidates = (m.candidates || []).filter(function (id) { return id !== failed; });
+    m.model = m.candidates[0] || null; saveModels(all);
+    return m.model;
+  }
+
+  /* ---------- connect: test a pasted code with ONE REAL TOOL CALL ----------
+     (fixes POC problem #7: a code could pass "say ok" and then fail when Penny used tools)
+     Resolves {ok:true, provider, label} or {ok:false, type, title, help}. */
+  ai.connect = function (rawCode, providerId) {
+    var code = ai.cleanCode(rawCode);
+    if (!code) return Promise.resolve(fail({ type: "bad_code" }, null, "Paste your code first."));
+    // Patterns are only a hint for WHICH company. Google decides whether a code is valid:
+    // codes change format over time, and we must never refuse a real code on a guess.
+    var provider = providerId || ai.detectProvider(code) || ai.defaultProvider;
+    if (code.length < 10) {
+      dd.errors.record("ai.connect", "pasted text not code-shaped: " + code.length + " characters, starts " + JSON.stringify(code.slice(0, 2)));
+      return Promise.resolve(fail({ type: "bad_code" }, null));
+    }
+    if (!ai.detectProvider(code)) dd.errors.record("ai.connect", "unfamiliar code format (" + code.length + " characters, starts " + JSON.stringify(code.slice(0, 2)) + "), asking " + provider);
+    var p = ai.providers[provider], ad = adapters[p.adapter];
+    var conn = { provider: provider, code: code };
+    pendingCode = code;
+    stopped = false;
+    var ranked = [], lastProblem = null, started = Date.now(), failed = {};
+    return ad.listModels(p, code).then(function (ids) {
+      ranked = ai.rankModels(provider, ids);
+      if (!ranked.length) throw { type: "unexpected", raw: "no usable models" };
+      return tryModels(ranked, 0);
+    }).then(function (model) {
+      var c = loadConns(); c.main = { provider: provider, code: code, savedAt: new Date().toISOString() };
+      var saved = dd.store.setJSON(CONN_KEY, c);
+      if (!saved.ok) return fail({ type: saved.reason }, provider);
+      dd.store.remove(LEGACY_KEY);
+      var all = models(); all[provider] = { model: model, candidates: [model].concat(ranked.filter(function (id) { return id !== model; })), checkedAt: Date.now(), order: 3, busy: failed }; saveModels(all);
+      dd.emit("ai:changed", { connected: true, provider: provider });
+      return { ok: true, provider: provider, label: p.label };
+    }).catch(function (e) { return fail(e, provider); });
+
+    function tryModels(list, i) {
+      var left = ai.limits.turn - (Date.now() - started);
+      if (i >= list.length || left < 3000) throw lastProblem || { type: "unexpected", raw: "no model passed the tool test" };
+      var model = list[i];
+      return ad.send(p, code, model, {
+        system: "You are a connection test.", ms: Math.min(i < list.length - 1 ? ai.limits.perModel : ai.limits.request, left), forceTool: "confirm_ready",
+        history: [{ role: "user", text: "Call confirm_ready with word set to ready." }],
+        tools: [{ name: "confirm_ready", description: "Confirms the connection works.", params: { word: { type: "string", description: "Always 'ready'" } } }]
+      }).then(function (res) {
+        if (res.calls.some(function (c) { return c.name === "confirm_ready"; })) return model;
+        lastProblem = { type: "unexpected", raw: model + " answered without using the tool" };
+        failed[model] = Date.now() + BUSY_MS;
+        return tryModels(list, i + 1);
+      }, function (e) {
+        // A bad code, no internet or Stop won't get better with another model: stop here.
+        if (e.type === "bad_code" || e.type === "offline" || e.type === "stopped" || e.type === "not_allowed" && !e.rediscover) throw e;
+        lastProblem = e; failed[model] = Date.now() + BUSY_MS;
+        dd.errors.record("ai.connect", model + " " + describe(e) + (list[i + 1] ? ", trying " + list[i + 1] : ""));
+        return tryModels(list, i + 1);
+      });
+    }
+  };
+
+  function fail(e, provider, title) {
+    if (e && e.raw) dd.errors.record("ai", e.raw);
+    var type = (e && e.type) || "unexpected";
+    var f = dd.errors.friendly(type === "stopped" ? "unexpected" : type, { company: provider && ai.providers[provider] ? ai.providers[provider].label : undefined });
+    if (title) f.title = title;
+    if (e && e.region) f.help = "Google's free plan doesn't work in your country yet.";
+    if (type === "bad_code" && !provider && !title) f.help = "That doesn't look like a code from Google. Copy it again with Google's Copy button and paste it here.";
+    return { ok: false, type: type, stopped: type === "stopped", title: f.title, help: f.help };
+  }
+
+  /* ---------- chat: one helper turn, running tools as the model asks ----------
+     req = { system, history:[neutral turns], tools:[neutral tools with run(args) ],
+             onStatus(fn), onToolCall(call) }
+     Every function call in a reply is run, in order (fixes POC problem #2).
+     Resolves { ok, text, history (new turns appended), calls:[...] } or { ok:false, ... }. */
+  ai.chat = function (req) {
+    var conns = loadConns();
+    if (!conns.main) return Promise.resolve(fail({ type: "bad_code" }, null, "The helper needs your free access code first."));
+    var conn = conns.main, p = ai.providers[conn.provider], ad = adapters[p.adapter];
+    var history = (req.history || []).slice();
+    var started = Date.now(), rounds = 0, ran = [], queue = [], tried = {}, lastProblem = null, refreshed = false;
+    var status = req.onStatus || function () {};
+    stopped = false;
+
+    function left() { return ai.limits.turn - (Date.now() - started); }
+    function untried() { return queue.filter(function (id) { return !tried[id]; }); }
+
+    function step(model) {
+      if (stopped) return Promise.reject({ type: "stopped" });
+      tried[model] = true;
+      // A silent model gets a short wait while other models are still left to try.
+      var ms = Math.min(untried().length ? ai.limits.perModel : ai.limits.request, left());
+      if (left() <= 1000) return Promise.reject(lastProblem || { type: "timeout", raw: "turn budget used up" });
+      status(rounds ? "working" : "thinking");
+      return ad.send(p, conn.code, model, { system: req.system, history: history, tools: req.tools, ms: ms, model: model }).then(function (res) {
+        history.push({ role: "model", text: res.text, calls: res.calls, raw: res.raw });
+        if (!res.calls.length) { rememberWorking(conn.provider, model); return { ok: true, text: res.text, history: history, calls: ran, model: model }; }
+        if (++rounds > ai.limits.rounds) { rememberWorking(conn.provider, model); return { ok: true, text: res.text || "", history: history, calls: ran, model: model, cappedRounds: true }; }
+        // Run every call in order, collect every result, send them back together.
+        var results = [];
+        return res.calls.reduce(function (chain, call) {
+          return chain.then(function () {
+            if (stopped) throw { type: "stopped" };
+            var tool = (req.tools || []).filter(function (t) { return t.name === call.name; })[0];
+            if (req.onToolCall) try { req.onToolCall(call); } catch (e) {}
+            return Promise.resolve(tool ? tool.run(call.args || {}, call) : { ok: false, message: "No tool called " + call.name })
+              .catch(function (e) { dd.errors.record("tool:" + call.name, e); return { ok: false, message: "That didn't work." }; })
+              .then(function (result) { results.push({ id: call.id, name: call.name, result: result }); ran.push({ name: call.name, args: call.args, result: result }); });
+          });
+        }, Promise.resolve()).then(function () {
+          history.push({ role: "tool", results: results });
+          return step(model);
+        });
+      }, function (e) {
+        // Problems no other model can fix: stop and explain.
+        if (e.type === "stopped" || e.type === "bad_code" || e.type === "offline" || (e.type === "not_allowed" && !e.rediscover)) throw e;
+        // Anything else (busy, silent, retired, this model's daily share used up, a model-
+        // specific refusal): note it and try the next model. Every model, until one answers.
+        lastProblem = e;
+        markBusy(conn.provider, model);
+        var next = untried()[0];
+        if (next && left() > 3000) {
+          status("retrying");
+          dd.errors.record("ai.switch", model + " " + describe(e) + ", trying " + next);
+          return step(next);
+        }
+        // Every model we knew about failed. Google may have added new ones: look once.
+        if (!refreshed && left() > 5000) {
+          refreshed = true;
+          return pickModel(conn, true).then(function () {
+            queue = modelQueue(conn.provider);
+            var fresh = untried()[0];
+            if (!fresh) throw e;
+            dd.errors.record("ai.switch", "all known models failed; new model found: " + fresh);
+            return step(fresh);
+          });
+        }
+        throw e;
+      });
+    }
+
+    return pickModel(conn).then(function () {
+      queue = modelQueue(conn.provider);
+      return step(queue[0]);
+    }).catch(function (e) {
+      var out = fail(e, conn.provider);
+      out.history = history; out.calls = ran; out.tried = Object.keys(tried);
+      return out;
+    });
+  };
+
+  function describe(e) {
+    return { busy: "busy", timeout: "no answer", out_of_share: "used up its free share", unexpected: e.rediscover ? "retired" : "refused" }[e.type] || e.type;
+  }
+
+  /* Every usable model, in order: the one that last worked first, then the rest by rank,
+     with models that recently failed moved to the end (still tried, never skipped). */
+  function modelQueue(provider) {
+    var m = models()[provider] || {}, busy = m.busy || {}, now = Date.now(), seen = {}, list = [];
+    [m.model].concat(m.candidates || []).forEach(function (id) { if (id && !seen[id]) { seen[id] = 1; list.push(id); } });
+    return list.filter(function (id) { return !(busy[id] > now); }).concat(list.filter(function (id) { return busy[id] > now; }));
+  }
+  ai._queue = modelQueue;
+  /* The model that just answered becomes the first choice next time. */
+  function rememberWorking(provider, id) {
+    var all = models(), m = all[provider]; if (!m) return;
+    m.model = id; if (m.busy) delete m.busy[id];
+    saveModels(all);
+  }
+
+  /* Speed check (AI test page only): times each kind of request with a generous limit,
+     so we can see what's slow. Resolves [{step, secs, outcome}]. */
+  ai.speedCheck = function (limitMs, onRow) {
+    var conn = loadConns().main; if (!conn) return Promise.resolve([{ step: "no code saved", secs: "-", outcome: "-" }]);
+    var p = ai.providers[conn.provider], ad = adapters[p.adapter], out = [], keep = ai.limits.request;
+    ai.limits.request = limitMs || 90000; stopped = false;
+    function timed(step, fn) {
+      var t = Date.now();
+      if (onRow) onRow(out.concat({ step: step, secs: "…", outcome: "waiting for Google" }));
+      return fn().then(function (r) { out.push({ step: step, secs: ((Date.now() - t) / 1000).toFixed(1), outcome: r }); },
+                       function (e) { out.push({ step: step, secs: ((Date.now() - t) / 1000).toFixed(1), outcome: "failed: " + (e.type === "timeout" ? "no answer" : e.type || "?") + (e.status ? " (" + e.status + ")" : "") }); })
+        .then(function () { if (onRow) onRow(out.slice()); });
+    }
+    var model, working = null;
+    return pickModel(conn).then(function (m) { model = m; })
+      .then(function () { return timed("model list", function () { return ad.listModels(p, conn.code).then(function (ids) { return ids.length + " models"; }); }); })
+      .then(function () {
+        var all = models()[conn.provider] || {}, list = [model].concat((all.candidates || []).filter(function (id) { return id !== model; })).slice(0, 3);
+        return list.reduce(function (chain, id) {
+          return chain.then(function () { return timed("plain answer (" + id + ")", function () {
+            return ad.send(p, conn.code, id, { ms: ai.limits.request, history: [{ role: "user", text: "Say hi in three words." }] }).then(function () { if (!working) working = id; return "ok"; }); }); });
+        }, Promise.resolve());
+      })
+      .then(function () { var use = working || model; return timed("tool answer (" + use + ")", function () {
+        return ad.send(p, conn.code, use, { ms: ai.limits.request, history: [{ role: "user", text: "Add apples to my list." }],
+          tools: [{ name: "add_item", description: "Add one item to the list.", params: { text: { type: "string" } } }] })
+          .then(function (r) { return r.calls.length ? "ok, used the tool" : "ok, but answered without the tool"; }); }); })
+      .then(function () { ai.limits.request = keep; return out; }, function (e) { ai.limits.request = keep; out.push({ step: "picking a model", secs: "-", outcome: "failed: " + (e.type || "?") }); return out; });
+  };
+
+  /* One-shot text answer without tools (e.g. the scripted guide's "ask anything" fallback). */
+  ai.ask = function (prompt, system) {
+    return ai.chat({ system: system, history: [{ role: "user", text: prompt }] });
+  };
+
+  function wait(ms) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(resolve, ms);
+      var poll = setInterval(function () { if (stopped) { clearTimeout(t); clearInterval(poll); reject({ type: "stopped" }); } }, 200);
+      setTimeout(function () { clearInterval(poll); }, ms + 50);
+    });
+  }
+
+  /* ---------- phone pairing: the AI code travels in the QR (on by default) ----------
+     Google codes travel as-is (the company is the default); others as "company:code". */
+  if (dd.pair) dd.pair.register({
+    key: "k", label: "access code",
+    give: function (opts) {
+      var c = loadConns().main;
+      if (!opts.includeCode || !c || !c.code) return undefined;
+      return c.provider === ai.defaultProvider ? c.code : c.provider + ":" + c.code;
+    },
+    take: function (v) {
+      if (typeof v !== "string" || v.length < 10 || v.length > 1000) return false;
+      var i = v.indexOf(":"), provider = ai.defaultProvider, code = v;
+      if (i > 0 && ai.providers[v.slice(0, i)]) { provider = v.slice(0, i); code = v.slice(i + 1); }
+      var c = loadConns();
+      if (c.main && c.main.code === code) return false;   // already here
+      c.main = { provider: provider, code: code, savedAt: new Date().toISOString(), fromPhonePairing: true };
+      if (!dd.store.setJSON(CONN_KEY, c).ok) return false;
+      dd.emit("ai:changed", { connected: true, provider: provider });
+      return true;
+    }
+  });
+
+  /* ---------- support diagnostic ---------- */
+  if (dd.diag) dd.diag.addSection("AI", function () {
+    var c = loadConns().main, m = models();
+    if (!c) return ["No access code saved."];
+    var pm = m[c.provider] || {};
+    return [
+      (ai.providers[c.provider] ? ai.providers[c.provider].label : c.provider) + " code " + mask(c.code) + (c.migrated ? " (moved from older version)" : ""),
+      "Model: " + (pm.model || "not picked yet") + (pm.checkedAt ? " · list checked " + new Date(pm.checkedAt).toLocaleDateString() : ""),
+      "Candidates: " + ((pm.candidates || []).slice(0, 5).join(", ") || "-"),
+      "Busy right now: " + (Object.keys(pm.busy || {}).filter(function (id) { return pm.busy[id] > Date.now(); }).join(", ") || "none")
+    ].concat(reqLog.length ? ["Recent requests (newest first):"].concat(reqLog.map(function (q) {
+      return "  " + q.at + " · " + q.what + (q.model ? " " + q.model : "") + " · " + q.secs + " s · " + q.outcome;
+    })) : ["No AI requests yet this visit."]);
+  });
+})();
+
+/* ---- dd.notes.js ---- */
+/* ===== DigiDoughnut Platform · dd.notes — the DigiDoughnut noticeboard =====
+   Once a week, at most, the program downloads one small public file that DigiDoughnut keeps
+   up to date. It can only carry:
+     helpLinks   updated "I'm stuck" / help page links            (https only)
+     labels      corrected button wording for setup screens        (plain text, short)
+     notice      one short message for buyers                      (plain text)
+     modelHints  AI models to prefer or avoid                      (model ids)
+     codePatterns how to recognise an AI company's code            (pattern text)
+   It can NEVER change where codes, numbers or messages are sent: those addresses are built
+   into the program. Nothing is sent with the request: no codes, numbers, ids or settings.
+   If the file can't be reached, the program works exactly the same with its built-in values.
+   The buyer can read this in plain words under "Privacy" in the footer (Oran, 2026-10-06). */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var notes = dd.notes = {};
+
+  // PROGRAM-INDEPENDENT. Where the noticeboard lives (GitHub Pages on the public repo).
+  notes.url = "https://budwakelam.github.io/digidoughnut/noticeboard/notes.json";
+  var KEY = "dd_notes_v1", WEEK = 7 * 24 * 3600 * 1000;
+  var LIMITS = { link: 300, label: 60, notice: 240, id: 40, list: 20 };
+
+  var cached = dd.store.getJSON(KEY) || null;   // {fetchedAt, data, dismissed:[ids]}
+  var data = (cached && cached.data) || {};
+
+  notes.get = function (section) { return data[section]; };
+  /* Help link by key, falling back to the built-in one. */
+  notes.link = function (key, fallback) { var h = data.helpLinks || {}; return h[key] || fallback; };
+  /* Button wording by key, falling back to the built-in one. Always plain text. */
+  notes.label = function (key, fallback) { var l = data.labels || {}; return l[key] || fallback; };
+  notes.lastChecked = function () { return cached && cached.okAt ? new Date(cached.okAt) : null; };
+  notes.lastTried = function () { return cached && cached.triedAt ? new Date(cached.triedAt) : null; };
+
+  /* ---------- validation: anything unexpected is dropped, never trusted ---------- */
+  // Text from the file is only ever shown as plain text (never as HTML), so "</>" is safe.
+  function str(v, max) { return typeof v === "string" && v.length > 0 && v.length <= max ? v : null; }
+  function httpsUrl(v) {
+    if (!str(v, LIMITS.link)) return null;
+    try { var u = new URL(v); return u.protocol === "https:" ? u.href : null; } catch (e) { return null; }
+  }
+  function map(obj, fn) {
+    var out = {}, n = 0;
+    if (obj && typeof obj === "object") Object.keys(obj).forEach(function (k) {
+      if (n >= 100 || !/^[A-Za-z0-9_.-]{1,60}$/.test(k)) return;
+      var v = fn(obj[k]); if (v != null) { out[k] = v; n++; }
+    });
+    return out;
+  }
+  function idList(v) {
+    return Array.isArray(v) ? v.filter(function (x) { return /^[a-z0-9.\-]{1,60}$/i.test(x); }).slice(0, LIMITS.list) : [];
+  }
+  notes.validate = function (raw) {
+    if (!raw || typeof raw !== "object" || raw.version !== 1) return null;
+    var out = {
+      helpLinks: map(raw.helpLinks, httpsUrl),
+      labels: map(raw.labels, function (v) { return str(v, LIMITS.label); }),
+      modelHints: map(raw.modelHints, function (v) { return v && typeof v === "object" ? { prefer: idList(v.prefer), avoid: idList(v.avoid) } : null; }),
+      codePatterns: map(raw.codePatterns, function (v) {
+        if (!str(v, 120) || !/^\^/.test(v)) return null;
+        try { new RegExp(v); return v; } catch (e) { return null; }
+      })
+    };
+    var n = raw.notice;
+    if (n && typeof n === "object" && str(n.id, LIMITS.id) && str(n.text, LIMITS.notice)) {
+      var until = n.until && !isNaN(Date.parse(n.until)) ? n.until : null;
+      out.notice = { id: n.id, text: n.text, until: until, link: httpsUrl(n.link) || null };
+    }
+    return out;
+  };
+
+  /* ---------- weekly check ---------- */
+  notes.check = function (force) {
+    if (!force && cached && cached.fetchedAt && Date.now() - cached.fetchedAt < WEEK) return Promise.resolve(false);
+    if (navigator.onLine === false) return Promise.resolve(false);
+    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, 8000);
+    // A plain GET: no cookies, no query string, no headers carrying anything about the buyer.
+    return fetch(notes.url, { method: "GET", credentials: "omit", cache: "no-cache", referrerPolicy: "no-referrer", signal: ctl.signal })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (raw) {
+        var clean = notes.validate(raw);
+        if (!clean) throw new Error("noticeboard file not in the expected shape");
+        data = clean;
+        cached = { fetchedAt: Date.now(), okAt: Date.now(), triedAt: Date.now(), data: clean, dismissed: (cached && cached.dismissed) || [] };
+        dd.store.setJSON(KEY, cached);
+        showNotice();
+        dd.emit("notes:updated", clean);
+        return true;
+      })
+      .catch(function (e) {
+        dd.errors.record("noticeboard", e);
+        // Try again in a day rather than on every page load.
+        cached = cached || { data: {}, dismissed: [] };
+        cached.fetchedAt = Date.now() - WEEK + 24 * 3600 * 1000;
+        cached.triedAt = Date.now();
+        dd.store.setJSON(KEY, cached);
+        return false;
+      })
+      .finally(function () { clearTimeout(t); });
+  };
+
+  function showNotice() {
+    var n = data.notice;
+    if (!n || !dd.ui) return;
+    if (n.until && Date.parse(n.until) < Date.now()) return;
+    if (cached && (cached.dismissed || []).indexOf(n.id) >= 0) return;
+    var buttons = [{ label: "Got it", onClick: function () {
+      cached.dismissed = (cached.dismissed || []).concat(n.id).slice(-20);
+      dd.store.setJSON(KEY, cached); dd.ui.clearNotice("board");
+    } }];
+    if (n.link) buttons.unshift({ label: "Read more", primary: true, onClick: function () { window.open(n.link, "_blank", "noopener"); } });
+    dd.ui.notice("board", n.text, "info", buttons);
+  }
+
+  /* Started by dd.core after the program is on screen, so it never delays the page. */
+  notes.start = function () { showNotice(); setTimeout(function () { notes.check(false); }, 1500); };
+
+  if (dd.diag) dd.diag.addSection("Noticeboard", function () {
+    var d = notes.lastChecked(), t = notes.lastTried();
+    var next = cached && cached.fetchedAt ? new Date(cached.fetchedAt + WEEK) : null;
+    return ["Last downloaded: " + (d ? d.toLocaleString() : "never") + " · last tried: " + (t ? t.toLocaleString() : "never") +
+            " · next check: " + (next ? (next < new Date() ? "on this visit" : next.toLocaleString()) : "on this visit") +
+            " · help links " + Object.keys(data.helpLinks || {}).length +
+            " · labels " + Object.keys(data.labels || {}).length +
+            (data.notice ? " · notice " + data.notice.id : "")];
+  });
+})();
+
+/* ---- dd.setup.js ---- */
+/* ===== DigiDoughnut Platform · dd.setup — the Setup Center and its wizards =====
+   Spec 3.8 (Oran, 2026-10-06/07):
+   - One checklist card, four steps, green ticks; identical in every program.
+   - Popup wizards: one action per screen, progress, big buttons, checkmarks. Every Google/tiiny
+     button label quoted exactly (labels can be corrected through the noticeboard). Every
+     "you can ignore this" said out loud. "Start over" on every screen. Dismissible and resumable.
+   - Two layers of help inside a wizard: before the access code works, a SCRIPTED guide answers
+     the predictable questions by keyword (offline, free, and it never pretends to be the AI).
+     Once the code works, the live AI answers inside the same wizard.
+   Wizard screens are DATA (see dd.setup.wizards below): copy lives in one place Oran can edit. */
+(function () {
+  "use strict";
+  var dd = window.dd = window.dd || {};
+  var setup = dd.setup = {};
+  var program = null;
+
+  function stateKey() { return dd.store.programKey(program.id, "setup"); }
+  function state() { return dd.store.getJSON(stateKey()) || { folded: false, wizards: {} }; }
+  function saveState(s) { dd.store.setJSON(stateKey(), s); }
+  var esc = function (s) { return dd.ui.esc(s); };
+  var L = function (key, fallback) { return dd.notes ? dd.notes.label(key, fallback) : fallback; };
+  var link = function (key, fallback) { return dd.notes ? dd.notes.link(key, fallback) : fallback; };
+
+  /* ---------- the four steps ---------- */
+  setup.steps = [
+    { id: "try", title: "Try it", gives: "Everything works right now, saved in this browser.", time: "Done",
+      done: function () { return true; } },
+    { id: "ai", title: "Turn on the helper", gives: "The AI helper and every smart feature.", time: "About 2 minutes",
+      done: function () { return !!(dd.ai && dd.ai.hasCode()); }, wizard: "ai" },
+    { id: "phone", title: "Put it on your phone", gives: "The same program on your phone, moved over by scanning a code.", time: "About 5 minutes",
+      done: function () { return dd.env.isHosted; }, wizard: "host" },
+    { id: "sync", title: "Keep devices in step", gives: "Changes on one device show up on the other.", time: "About 10 minutes",
+      done: function () { return !!(dd.sync && dd.sync.isOn && dd.sync.isOn()); }, wizard: "sync" }
+  ];
+
+  setup.doneCount = function () { return setup.steps.filter(function (s) { return s.done(); }).length; };
+
+  /* ---------- the card / chip ---------- */
+  setup.paint = function () {
+    var host = document.getElementById("dd-setup"); if (!host || !program) return;
+    var st = state(), n = setup.doneCount(), total = setup.steps.length;
+    if (st.folded || n === total) {
+      host.innerHTML = '<button class="dd-setup-chip" id="dd-setup-chip">' + (n === total ? "✓ All set up" : "Setup: " + n + " of " + total + " done") + '</button>';
+      document.getElementById("dd-setup-chip").addEventListener("click", function () { var s = state(); s.folded = false; saveState(s); setup.paint(); });
+      return;
+    }
+    var rows = setup.steps.map(function (s, i) {
+      var done = s.done(), wiz = s.wizard && setup.wizards[s.wizard];
+      var btn = done && s.id === "phone" && dd.pair ? '<button class="dd-btn small ghost" data-phone>📲 Send to my phone</button>' : done
+        ? (wiz && wiz.ready !== false && s.id !== "try" ? '<button class="dd-linkbtn" data-start="' + s.wizard + '">Change</button>' : "")
+        : (wiz && wiz.ready !== false ? '<button class="dd-btn small" data-start="' + s.wizard + '">' + (st.wizards[s.wizard] ? "Continue" : "Start") + '</button>'
+                                      : '<span class="dd-note">Coming soon</span>');
+      return '<li class="dd-step' + (done ? " done" : "") + '"><span class="dd-tick" aria-hidden="true">' + (done ? "✓" : i + 1) + '</span>' +
+        '<div class="dd-step-text"><b>' + esc(s.title) + '</b><span>' + esc(s.gives) + (done ? "" : " · " + esc(s.time)) + '</span></div>' + btn + '</li>';
+    }).join("");
+    host.innerHTML = '<div class="dd-card dd-setup-card"><h2>Set up ' + esc(program.name) + ' <span class="dd-setup-count">' + n + ' of ' + total + ' done</span></h2>' +
+      '<p class="dd-note" style="margin:0 0 8px">Each step is optional. Do them in any order, any time.</p><ol class="dd-steps">' + rows + '</ol>' +
+      '<div class="dd-btnrow"><button class="dd-linkbtn" id="dd-setup-fold">Hide this for now</button></div></div>';
+    var ph = host.querySelector("[data-phone]"); if (ph) ph.addEventListener("click", function () { dd.pair.open(); });
+    host.querySelectorAll("[data-start]").forEach(function (b) { b.addEventListener("click", function () { setup.open(b.dataset.start); }); });
+    document.getElementById("dd-setup-fold").addEventListener("click", function () { var s = state(); s.folded = true; saveState(s); setup.paint(); });
+  };
+
+  /* Just-in-time: an AI feature was tapped with no code. Opens the helper wizard with context. */
+  setup.needAI = function (why) {
+    setup.open("ai", { context: (why || "To do that, the helper needs a free access code from Google.") + " It takes about 2 minutes." });
+  };
+
+  /* ---------- the wizard ---------- */
+  var cur = null;   // {id, wiz, at, context}
+  setup.open = function (id, opts) {
+    var wiz = setup.wizards[id]; if (!wiz || wiz.ready === false || !wiz.screens.length) return;
+    var st = state(), at = (st.wizards[id] && st.wizards[id].at) || 0;
+    if (at >= wiz.screens.length) at = 0;
+    cur = { id: id, wiz: wiz, at: at, context: opts && opts.context };
+    draw();
+  };
+  // Screen 1 isn't progress: only remember a place once the buyer has moved past it.
+  function remember() { var s = state(); if (cur.at > 0) s.wizards[cur.id] = { at: cur.at }; else delete s.wizards[cur.id]; saveState(s); }
+  function finish() { var s = state(); delete s.wizards[cur.id]; saveState(s); }
+
+  function draw() {
+    var wiz = cur.wiz, sc = wiz.screens[cur.at], total = wiz.screens.length;
+    remember();
+    var dots = wiz.screens.map(function (_, i) { return '<i class="' + (i < cur.at ? "done" : i === cur.at ? "now" : "") + '"></i>'; }).join("");
+    var body = typeof sc.body === "function" ? sc.body() : sc.body;
+    var html =
+      '<div class="dd-wiz-top"><span class="dd-wiz-name">' + esc(wiz.title) + '</span><span class="dd-wiz-progress">Step ' + (cur.at + 1) + ' of ' + total + '</span></div>' +
+      '<div class="dd-wiz-dots">' + dots + '</div>' +
+      (cur.context && cur.at === 0 ? '<p class="dd-status show info">' + esc(cur.context) + '</p>' : "") +
+      '<h2>' + esc(sc.title) + '</h2><div class="dd-wiz-body">' + body + '</div>' +
+      (sc.action ? '<div class="dd-btnrow"><button class="dd-btn dd-wiz-big" data-action>' + esc(sc.action.label) + '</button></div>' : "") +
+      '<div class="dd-status" id="dd-wiz-status"></div>' +
+      '<div class="dd-wiz-nav">' +
+        (cur.at > 0 ? '<button class="dd-btn ghost" data-back>Back</button>' : "") +
+        (sc.next !== false ? '<button class="dd-btn" data-next>' + esc(sc.nextLabel || "Next") + '</button>' : "") +
+      '</div>' +
+      '<div class="dd-wiz-help">' +
+        '<button class="dd-linkbtn" data-stuck>I\'m stuck</button>' +
+        '<button class="dd-linkbtn" data-ask>Ask a question</button>' +
+        (cur.at > 0 ? '<button class="dd-linkbtn" data-over>Start over</button>' : "") +
+        '<button class="dd-linkbtn" data-later>Finish later</button>' +
+      '</div>' +
+      '<div class="dd-wiz-stuck" id="dd-wiz-stuck" hidden></div>' +
+      '<div class="dd-wiz-ask" id="dd-wiz-ask" hidden></div>';
+    var sh = dd.ui.sheet(html, { onClose: function () { setup.paint(); } });
+    sh.classList.add("dd-wiz");
+
+    var q = function (sel) { return sh.querySelector(sel); };
+    if (q("[data-back]")) q("[data-back]").addEventListener("click", function () { cur.at--; draw(); });
+    if (q("[data-over]")) q("[data-over]").addEventListener("click", function () { cur.at = 0; draw(); });
+    q("[data-later]").addEventListener("click", function () { dd.ui.closeSheet(); dd.ui.toast("Saved. Tap Continue in the setup card to pick up here."); });
+    if (q("[data-action]")) q("[data-action]").addEventListener("click", function () { sc.action.run(ctxFor(sh)); });
+    if (q("[data-next]")) q("[data-next]").addEventListener("click", function () { next(sh); });
+    q("[data-stuck]").addEventListener("click", function () { toggleStuck(sh, sc); });
+    q("[data-ask]").addEventListener("click", function () { toggleAsk(sh); });
+    if (sc.mount) sc.mount(ctxFor(sh));
+  }
+
+  function ctxFor(sh) {
+    return {
+      el: sh, status: function (kind, title, help) { dd.ui.status(sh.querySelector("#dd-wiz-status"), kind, title, help); },
+      next: function () { next(sh, true); }, open: function (url) { window.open(url, "_blank", "noopener"); }
+    };
+  }
+
+  function next(sh, skipCheck) {
+    var sc = cur.wiz.screens[cur.at];
+    var go = function () {
+      if (cur.at < cur.wiz.screens.length - 1) { cur.at++; draw(); }
+      else { finish(); dd.ui.closeSheet(); setup.paint(); if (cur.wiz.onDone) cur.wiz.onDone(); }
+    };
+    if (skipCheck || !sc.check) return go();
+    var c = ctxFor(sh);
+    var btn = sh.querySelector("[data-next]"); if (btn) btn.disabled = true;
+    Promise.resolve(sc.check(c)).then(function (ok) { if (btn) btn.disabled = false; if (ok) go(); });
+  }
+
+  /* "I'm stuck": common fixes for THIS screen, plus a link to the picture guide. */
+  function toggleStuck(sh, sc) {
+    var box = sh.querySelector("#dd-wiz-stuck");
+    box.hidden = !box.hidden; sh.querySelector("#dd-wiz-ask").hidden = true;
+    if (box.hidden) return;
+    var fixes = (sc.stuck || []).concat(["Close this and tap Continue later. Your place is saved.", "Nothing you do here can break the program. Every step can be done again."]);
+    var guide = sc.guide ? link("guide_" + sc.guide, null) : null;
+    box.innerHTML = "<b>Things that usually help:</b><ul>" + fixes.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" +
+      (guide ? '<p><a href="' + esc(guide) + '" target="_blank" rel="noopener">See this step with pictures</a></p>' : "");
+  }
+
+  /* ---------- "Ask a question": scripted guide first, live AI once the code works ---------- */
+  function toggleAsk(sh) {
+    var box = sh.querySelector("#dd-wiz-ask");
+    box.hidden = !box.hidden; sh.querySelector("#dd-wiz-stuck").hidden = true;
+    if (box.hidden) return;
+    var live = dd.ai && dd.ai.hasCode();
+    box.innerHTML = '<p class="dd-note" style="margin:0 0 6px">' + (live
+        ? "Ask anything about this step. The helper (AI) answers."
+        : "Ask about this step. These are ready-made answers from the setup guide; the AI helper takes over once your code is connected.") + '</p>' +
+      '<div class="dd-ask-msgs" id="dd-ask-msgs"></div>' +
+      '<div class="dd-ask-row"><input class="dd-input" id="dd-ask-in" placeholder="e.g. Is it really free?" autocomplete="off"><button class="dd-btn small" id="dd-ask-go">Ask</button></div>' +
+      '<div class="dd-ask-chips">' + setup.suggestQuestions(cur.id).map(function (t) { return '<button class="dd-chip">' + esc(t) + '</button>'; }).join("") + '</div>';
+    var input = box.querySelector("#dd-ask-in");
+    var send = function (text) {
+      text = (text || input.value).trim(); if (!text) return;
+      input.value = "";
+      say(box, "me", text);
+      var live = dd.ai && dd.ai.hasCode();
+      var wait = live ? say(box, "bot pending", "The helper is thinking…") : null;
+      box.querySelector("#dd-ask-go").disabled = true;
+      setup.answer(text, cur).then(function (a) {
+        if (wait) wait.remove();
+        box.querySelector("#dd-ask-go").disabled = false;
+        say(box, a.live ? "bot live" : "bot", a.text);
+      });
+    };
+    box.querySelector("#dd-ask-go").addEventListener("click", function () { send(); });
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
+    box.querySelectorAll(".dd-chip").forEach(function (c) { c.addEventListener("click", function () { send(c.textContent); }); });
+    input.focus();
+  }
+  function say(box, who, text) {
+    var m = document.createElement("div"); m.className = "dd-ask-msg " + who;
+    m.textContent = text; box.querySelector("#dd-ask-msgs").appendChild(m);
+    m.scrollIntoView({ block: "nearest" });
+    return m;
+  }
+
+  /* Returns Promise<{text, live}>. Live AI when a code works; otherwise (or if the AI fails)
+     the scripted answer. The scripted guide never pretends to be the AI. */
+  setup.answer = function (question, where) {
+    var scripted = setup.scriptedAnswer(question);
+    if (!(dd.ai && dd.ai.hasCode())) return Promise.resolve({ text: scripted || setup.noMatch, live: false });
+    var wiz = where && where.wiz, sc = wiz && wiz.screens[where.at];
+    var context = "The buyer is in the '" + (wiz ? wiz.title : "setup") + "' wizard, on step " + (where ? where.at + 1 : "?") +
+      " ('" + (sc ? sc.title : "") + "'). That screen says: " + (sc ? stripTags(typeof sc.body === "function" ? sc.body() : sc.body) : "");
+    return dd.ai.chat({ system: setup.helperPrompt() + "\n\n" + context, history: [{ role: "user", text: question }] }).then(function (r) {
+      if (r.ok && r.text) return { text: r.text, live: true };
+      return { text: scripted || "The helper can't answer right now (" + r.title.replace(/\.$/, "") + "). " + setup.noMatch, live: false };
+    });
+  };
+  function stripTags(h) { var d = document.createElement("div"); d.innerHTML = h; return d.textContent.replace(/\s+/g, " ").trim(); }
+
+  setup.helperPrompt = function () {
+    return "You are the friendly setup guide inside " + (program ? program.name : "a DigiDoughnut program") + ", a one-page program sold by DigiDoughnut. " +
+      "The buyer is not technical. Answer in 1-3 short sentences, plain words, no jargon. Say 'free access code', not 'API key'. " +
+      "Only help with the step they're on. If unsure what a screen shows, say so and suggest the 'I'm stuck' button. " +
+      "Facts: the access code is free from Google AI Studio, no credit card. The program keeps the code only in this browser. " +
+      "Nothing they do in setup can break the program; every step can be redone.";
+  };
+
+  /* ---------- the scripted question bank (spec 3.8: all must be answered in-wizard) ---------- */
+  setup.noMatch = "I don't have a ready answer for that one. Try the \"I'm stuck\" button, or tap Finish later and come back any time.";
+  setup.bank = [
+    { keys: ["free", "cost", "pay", "price", "charge", "money"], a: "Yes, it's free. Google gives every account a free daily share. If you ever use it up, it refills on its own. You won't be charged." },
+    { keys: ["credit card", "card", "billing", "bank"], a: "No credit card needed. If Google ever asks for billing, you've gone somewhere you don't need. Tap Back and use the button on the screen before." },
+    { keys: ["account", "gmail", "sign in", "log in", "login", "google account"], a: "Any Google account works, the same one you use for Gmail or YouTube. If you don't have one, Google lets you make one for free." },
+    { keys: ["name", "project", "call it", "what do i write", "title"], a: "Anything you like. Try \"My " + "Program" + "\". The name is only for you." },
+    { keys: ["region", "location", "country", "where", "united states", "europe"], a: "Pick United States if you're in Canada or the US. In the UK, pick Belgium (europe-west1). It only decides where your copy is stored." },
+    { keys: ["locked", "test mode", "mode", "security rules", "production"], a: "Choose \"Start in locked mode\". It sounds strict, but the next step opens exactly what this program needs and nothing more." },
+    { keys: ["setup code", "config", "firebaseconfig", "where do i find", "find the code"], a: "It's the box of text Firebase shows after you register the app, starting with \"const firebaseConfig\". Copy the whole box." },
+    { keys: ["paste", "what exactly", "copy", "which part", "whole thing"], a: "Copy the whole thing Google shows you, using Google's own Copy button. Then come back here and paste it in the box. Extra spaces don't matter." },
+    { keys: ["mistake", "wrong", "messed up", "undo", "break", "broke", "start over"], a: "Nothing can break. Every step can be done again: tap Start over, or Back. Your numbers in the program are never touched by setup." },
+    { keys: ["safe", "private", "privacy", "share", "who can see", "secure"], a: "Your code stays in this browser on this device. Your numbers stay here too. When you use the helper, the numbers it needs go to Google to get an answer." },
+    { keys: ["ignore", "skip", "terms", "email", "updates", "checkbox", "tick"], a: "Tick the box agreeing to Google's terms (you have to). Any box about emails or news is up to you: you can leave it empty." },
+    { keys: ["long", "time", "how many", "minutes"], a: "About 2 minutes for the helper, 5 for the phone, 10 for sync. You can stop any time and pick up where you left off." },
+    { keys: ["api", "key", "what is", "access code"], a: "Google calls it an API key. We call it your free access code: it's how the helper gets to use Google's AI for free." },
+    { keys: ["tiiny", "tiny host", "hosting", "online", "upload", "address", "link", "website"], a: "tiiny.host puts your program online for free, so your phone can open it. Your numbers and your code are never uploaded: they stay on your own devices." },
+    { keys: ["3 months", "expire", "taken down", "stay online", "disappear", "how long does it stay", "how long will it stay"], a: "On tiiny.host's free plan the page stays online as long as you log in to tiiny.host at least once every 3 months." },
+    { keys: ["update", "new version", "upgrade"], a: "To put a new version online, log in to tiiny.host and use Update on the same project. That keeps the same address, so your numbers stay." },
+    { keys: ["trial", "free trial", "solo"], a: "You don't need tiiny.host's free trial: tap Skip. The trial turns into a paid plan, and the free plan is all this program needs." },
+    { keys: ["phone", "iphone", "android", "mobile"], a: "Setting up the helper is easiest on a computer. Once it works, Send to my phone moves it over by scanning a code." }
+  ];
+  setup.suggestQuestions = function (wizardId) {
+    if (wizardId === "host") return ["Is it really free?", "Do I need the free trial?", "How long does it stay online?"];
+    return wizardId === "sync" ? ["Which region?", "Locked or test mode?", "Where's the setup code?"]
+                               : ["Is it really free?", "Do I need a credit card?", "What if I make a mistake?"];
+  };
+  setup.scriptedAnswer = function (q) {
+    var t = " " + String(q).toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ") + " ";
+    var best = null, bestScore = 0;
+    setup.bank.forEach(function (e) {
+      var score = 0;
+      e.keys.forEach(function (k) { if (t.indexOf(" " + k + " ") >= 0 || (k.length > 4 && t.indexOf(k) >= 0)) score += k.split(" ").length; });
+      if (score > bestScore) { bestScore = score; best = e; }
+    });
+    if (!best) return null;
+    return best.a.replace("My Program", "My " + (program ? program.name : "Program"));
+  };
+
+  /* ---------- wizards (screens as data) ---------- */
+  setup.wizards = {};
+
+  setup.wizards.ai = {
+    title: "Turn on the helper",
+    onDone: function () { dd.ui.toast("The helper is turned on.", 4000); },
+    screens: [
+      { title: "A free code from Google",
+        body: function () { return '<p>The helper runs on Google\'s AI. To use it, you need a free code from Google. <b>Google calls this an API key. We call it your free access code.</b></p>' +
+          '<ul class="dd-facts"><li>✓ Free. No credit card.</li><li>✓ About 2 minutes.</li>' + (dd.env.isPhone ? "" : '<li>✓ Easiest on a computer, like you\'re using now.</li>') + '</ul>' +
+          (dd.env.isPhone ? '<p class="dd-status show warn">This is easiest on a computer. You can do it there, then send it to your phone with one scan.</p>' : "") +
+          '<p class="dd-note">' + esc(dd.ai.providers.google.privacyNote) + '</p>'; } },
+      { title: "Open Google AI Studio",
+        body: function () { return '<p>Tap the button. Google AI Studio opens in a new tab. Sign in with your Google account (the one you use for Gmail or YouTube).</p>' +
+          '<p class="dd-note">Keep this page open. You\'ll come back here in a minute.</p>'; },
+        action: { label: "Open Google AI Studio", run: function (c) { c.open(dd.ai.getCodeLink("google")); } },
+        stuck: ["If Google asks you to make an account, that's free too.", "If the page is blank, close that tab and tap the button again."], guide: "ai_open" },
+      { title: "Agree to Google's terms (first time only)",
+        body: function () { return '<p>The first time, Google shows its terms. Tick the box that you agree, then tap <b>' + esc(L("ai_terms_continue", "Continue")) + '</b>.</p>' +
+          '<p><b>You can ignore</b> any box about emails, news or research. Leave those empty if you like.</p>' +
+          '<p class="dd-note">Didn\'t see any terms? That\'s fine, you\'ve agreed before. Tap Next.</p>'; },
+        stuck: ["You need to be 18 or older to use Google AI Studio.", "If Google says it isn't available in your country, the helper can't be used there yet."], guide: "ai_terms" },
+      { title: "Find your code",
+        body: function () { return '<p>Look for the page called <b>' + esc(L("ai_keys_page", "API Keys")) + '</b> (Google sometimes opens it for you).</p>' +
+          '<ul><li>If you see a code in the list already, you\'re done with this step: Google made one for you.</li>' +
+          '<li>If the list is empty, tap <b>' + esc(L("ai_create_key", "Create API key")) + '</b>.</li></ul>' +
+          '<p><b>You can ignore</b> anything about projects, billing or "upgrade". You don\'t need any of it.</p>'; },
+        stuck: ["Can't find the API Keys page? Tap Back, then tap Open Google AI Studio again: it opens the right page.", "If Google asks you to choose or name a project, pick the one it suggests, or type anything, like \"My helper\"."], guide: "ai_find" },
+      { title: "Copy your code",
+        body: function () { return '<p>Next to your code, tap Google\'s <b>' + esc(L("ai_copy", "Copy")) + '</b> button (it may just be a small copy icon).</p>' +
+          '<p class="dd-note">Copying the whole code with Google\'s button is the safest way. Don\'t worry about what it looks like.</p>'; },
+        stuck: ["If you can only see part of the code, click on it first, then copy.", "On a phone, press and hold the code, then tap Copy."], guide: "ai_copy" },
+      { title: "Paste it here",
+        body: '<p>Paste your code in the box, then tap <b>Connect</b>. We\'ll check it with Google straight away.</p>' +
+              '<input class="dd-input" id="dd-wiz-code" placeholder="Paste your free access code" autocomplete="off" autocapitalize="off" spellcheck="false">',
+        action: { label: "Connect", run: function (c) { connectFromWizard(c); } },
+        mount: function (c) {
+          var input = c.el.querySelector("#dd-wiz-code");
+          input.addEventListener("keydown", function (e) { if (e.key === "Enter") connectFromWizard(c); });
+          if (!dd.env.isPhone) input.focus();
+        },
+        next: false,
+        stuck: ["Paste with Ctrl+V (Windows) or Cmd+V (Mac). On a phone, press and hold the box, then tap Paste.", "If it says the code didn't work, go back to Google, copy it again with Google's Copy button, and paste again."], guide: "ai_paste" },
+      { title: "You're connected!",
+        body: '<p class="dd-big-tick">✓</p><p>The helper is ready. Your code stays in this browser, on this device.</p>' +
+              '<p class="dd-note">To use the helper on your phone too, use <b>Send to my phone</b>: it brings your code across with one scan.</p>',
+        nextLabel: "Done" }
+    ]
+  };
+
+  function connectFromWizard(c) {
+    var input = c.el.querySelector("#dd-wiz-code"), btn = c.el.querySelector("[data-action]");
+    if (btn.disabled) return;
+    if (!input.value.trim()) { c.status("warn", "Paste your code in the box first."); input.focus(); return; }
+    btn.disabled = true; btn.textContent = "Checking with Google…";
+    c.status("info", "Checking your code with Google. This can take up to a minute when Google is busy.");
+    dd.ai.connect(input.value).then(function (r) {
+      btn.disabled = false; btn.textContent = "Connect";
+      if (r.ok) { c.status("ok", "It works!"); setTimeout(function () { if (document.body.contains(c.el)) c.next(); }, 600); }
+      else c.status("err", r.title, r.help);
+    });
+  }
+
+  /* "Put it on your phone": put the file online with tiiny.host (free plan, checked 2026-10-07:
+     1 live project, 3 MB uploads, link stays up while the owner logs in once every 3 months,
+     a small tiiny banner, and a "Start your free trial" popup whose way out is "Skip"; existing
+     projects have an "Update" button that keeps the same address). Then everything set up in
+     the file (code + numbers) is carried to the new address in one link, using dd.pair. */
+  function fileName() {
+    try { return decodeURIComponent(location.pathname.split("/").pop()) || "the program file"; } catch (e) { return "the program file"; }
+  }
+  function hostState(v) { var s = state(); if (v !== undefined) { s.hostUrl = v; saveState(s); } return s.hostUrl || ""; }
+  /* Tidy a pasted address. Returns a full https address, or null if it isn't one. */
+  setup.cleanAddress = function (raw) {
+    var t = String(raw || "").trim().replace(/^["'<]+|["'>]+$/g, "");
+    if (!t) return null;
+    if (!/^[a-z]+:\/\//i.test(t)) t = "https://" + t;
+    try {
+      var u = new URL(t);
+      if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+      if (!/\./.test(u.hostname) || /\s/.test(t)) return null;
+      u.hash = "";
+      return u.href;
+    } catch (e) { return null; }
+  };
+
+  setup.wizards.host = {
+    title: "Put it on your phone",
+    onDone: function () { dd.ui.toast("Use your new address from now on. Bookmark it!", 4500); },
+    screens: [
+      { title: "Put it online, for free",
+        body: function () { return '<p>Your phone can\'t open a file that lives on this computer. So first we put the program online, at its own web address, using a free service called <b>tiiny.host</b>.</p>' +
+          '<ul class="dd-facts"><li>✓ Free. No credit card.</li><li>✓ About 5 minutes.</li><li>✓ Your numbers and your code are never uploaded.</li></ul>' +
+          (dd.env.isPhone ? '<p class="dd-status show warn">Do this step on the computer where you saved the program file. Then come back to your phone at the end.</p>' : "") +
+          '<p class="dd-note">The page itself can be opened by anyone who has its address, like a shared link. What you type into it stays on each of your own devices.</p>'; } },
+      { title: "Open tiiny.host and sign up",
+        body: function () { return '<p>Tap the button. tiiny.host opens in a new tab. Sign up for free, with your email or your Google account.</p>' +
+          '<p>If tiiny.host offers a free trial, tap <b>' + esc(L("host_skip_trial", "Skip")) + '</b>. You don\'t need it.</p>' +
+          '<p><b>You can ignore</b> anything about upgrading, custom domains, analytics or teams.</p>'; },
+        action: { label: "Open tiiny.host", run: function (c) { c.open(link("host_open", "https://tiiny.host/")); } },
+        stuck: ["Already have a tiiny.host account? Just log in.", "If a big \"Start free trial\" button appears, look below it for Skip. The trial turns into a paid plan, so skip it."], guide: "host_open" },
+      { title: "Upload this program",
+        body: function () { return '<p>On tiiny.host, tap <b>' + esc(L("host_upload", "Upload file")) + '</b> and choose this file:</p>' +
+          '<p class="dd-filename">' + esc(fileName()) + '</p>' +
+          '<p class="dd-note">It\'s wherever you saved it from Etsy, often the Downloads folder.</p>' +
+          '<p><b>You can ignore</b> options for passwords, domains or names. The address tiiny.host picks is fine.</p>'; },
+        stuck: ["Can't find the file? On Windows, open File Explorer and look in Downloads. On a Mac, open Finder and look in Downloads.",
+                "If tiiny.host says you've used your free project, the free plan holds one program at a time. Contact DigiDoughnut and we'll help."], guide: "host_upload" },
+      { title: "Copy your new address",
+        body: function () { return '<p>When the upload finishes, tiiny.host shows your program\'s new address. It ends in <b>.tiiny.site</b>. Copy it, then paste it here.</p>' +
+          '<input class="dd-input" id="dd-wiz-addr" placeholder="e.g. something-12.tiiny.site" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(hostState()) + '">'; },
+        mount: function (c) { var i = c.el.querySelector("#dd-wiz-addr"); if (!dd.env.isPhone && !i.value) i.focus(); },
+        check: function (c) {
+          var url = setup.cleanAddress(c.el.querySelector("#dd-wiz-addr").value);
+          if (!url) { c.status("warn", "Paste your new address first.", "It looks something like something-12.tiiny.site."); return false; }
+          if (url.split("#")[0] === location.href.split("#")[0]) { c.status("warn", "That's the address of this page.", "Paste the new address that tiiny.host gave you."); return false; }
+          hostState(url); return true;
+        },
+        stuck: ["On tiiny.host, the address is shown as a link. Copy it, or click the link and copy the address from the top of your browser.", "It's also listed under Live Projects when you log in to tiiny.host."], guide: "host_address" },
+      { title: "Move your setup across",
+        body: function () {
+          var url = hostState(), host = url; try { host = new URL(url).host; } catch (e) {}
+          return '<p>Tap the button. Your program opens at <b>' + esc(host) + '</b>' + (dd.ai && dd.ai.hasCode() ? ', with your free access code' : '') +
+            (dd.isExample && !dd.isExample() ? ' and your numbers' : '') + ' already in it.</p>' +
+            '<p class="dd-note">The button works for 10 minutes. If it runs out, just tap it again.</p>'; },
+        action: { label: "Open my program at its new address", run: function (c) {
+          var made = dd.pair.makeLink({ base: hostState(), includeCode: true, maxLink: 60000 });
+          c.open(made.link);
+          c.status(made.left.length ? "warn" : "ok", made.left.length ? "Opened. Your " + made.left.join(" and ") + " were too big to carry, so they stay here for now." : "Opened in a new tab. Check it, then come back here and tap Next.");
+        } },
+        stuck: ["Nothing opened? Your browser may have blocked the new tab. Allow pop-ups for this page, or tap the button again.",
+                "If the new page looks empty, check the address you pasted: tap Back and fix it."], guide: "host_move" },
+      { title: "Bookmark it and keep it",
+        body: function () { return '<p class="dd-big-tick">✓</p><p>In the new tab, <b>bookmark the page</b> (Ctrl+D on Windows, Cmd+D on a Mac). From now on, always open the program from that address.</p>' +
+          '<ul><li><b>Same address, same numbers.</b> A different address, or the file on this computer, starts with its own separate numbers.</li>' +
+          '<li><b>Log in to tiiny.host at least once every 3 months.</b> That keeps your free page online.</li>' +
+          '<li><b>Getting an update?</b> On tiiny.host, use <b>' + esc(L("host_update", "Update")) + '</b> on this same project. Don\'t upload it as a new one.</li></ul>' +
+          '<p>Last step: in the new tab, open the setup card and tap <b>Send to my phone</b>.</p>' +
+          '<p class="dd-note">You can ignore the small tiiny.host banner on your page.</p>'; },
+        nextLabel: "Done" }
+    ]
+  };
+  setup.wizards.sync = { title: "Keep devices in step", ready: false, screens: [] };   // Phase 5 sync + Firebase wizard
+
+  /* ---------- start ---------- */
+  setup.start = function (p) {
+    program = p;
+    setup.paint();
+    dd.on("ai:changed", setup.paint);
+    dd.on("pair:received", setup.paint);
+  };
+
+  if (dd.diag) dd.diag.addSection("Setup", function () {
+    if (!program) return ["-"];
+    var st = state();
+    return [setup.steps.map(function (s) { return s.title + ": " + (s.done() ? "done" : "not yet"); }).join(" · "),
+            "Wizards in progress: " + (Object.keys(st.wizards).map(function (k) { return k + " at screen " + (st.wizards[k].at + 1); }).join(", ") || "none")];
+  });
+})();
+
+</script>
+<script>
+/* ===== PROGRAM-SPECIFIC code ===== */
+/* ===== PROGRAM-SPECIFIC: Demo List =====
+   A deliberately tiny program that exercises the platform: first-run example data, saving,
+   a schema upgrade (v1 stored plain strings, v2 stores objects), and the friendly confirm.
+   Copy this folder to start a new program. Everything not in this object comes from the platform. */
+const DD_PROGRAM = {
+  id: "demo",                       // lowercase letters/digits; becomes dd_demo_data_v1
+  name: "Demo List",
+  tagline: "A platform test program",
+  version: "0.1.0",
+  schemaVersion: 2,
+  accent: "#2563eb",
+  exampleNotice: "You're looking at an example list so you can try things out.",
+
+  emptyData() { return { items: [] }; },
+
+  exampleData() {
+    return { items: [
+      { id: "ex1", text: "Buy flour", done: false },
+      { id: "ex2", text: "Book the market table", done: true },
+      { id: "ex3", text: "Print price tags", done: false }
+    ] };
+  },
+
+  // Called before any saved data is used. Return false and the platform keeps a recovery copy.
+  validateData(d) {
+    return !!d && Array.isArray(d.items) && d.items.every((i) =>
+      i && typeof i.id === "string" && typeof i.text === "string" && typeof i.done === "boolean");
+  },
+
+  // Bring data from any older schema up to this one. fromVersion 0 = saved before envelopes existed.
+  migrate(d, fromVersion) {
+    let out = d || { items: [] };
+    if (fromVersion < 2) {
+      out = { items: (out.items || []).map((t, n) => typeof t === "string"
+        ? { id: "m" + n + "_" + Date.now().toString(36), text: t, done: false } : t) };
+    }
+    return out;
+  },
+
+  // Runs once, after the platform frame is ready. Wire up static buttons here.
+  mount(ctx) {
+    const $ = ctx.ui.$;
+    const add = () => {
+      const box = $("demoNew"), text = box.value.trim();
+      if (!text) { ctx.ui.status("demoStatus", "warn", "Type something first."); return; }
+      ctx.update((d) => { d.items.push({ id: ctx.ui.uid("i"), text: text.slice(0, 120), done: false }); });
+      box.value = ""; ctx.ui.clearStatus("demoStatus");
+    };
+    $("demoAdd").addEventListener("click", add);
+    $("demoNew").addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
+    $("demoPhone").addEventListener("click", () => dd.pair.open());
+    $("demoClear").addEventListener("click", async () => {
+      const yes = await ctx.ui.confirm("Clear the whole list?", "This removes every item. You can't undo it.", "Yes, clear it", "No, keep it", true);
+      if (yes) dd.replaceData(DD_PROGRAM.emptyData(), { example: false, source: "clear" });
+    });
+  },
+
+  // Draws the screen from ctx.data. Called after every change.
+  render(ctx) {
+    const list = ctx.ui.$("demoList"), esc = ctx.ui.esc;
+    const items = ctx.data.items;
+    ctx.ui.$("demoCount").textContent = items.filter((i) => !i.done).length + " to do";
+    list.innerHTML = items.length ? "" : '<p class="dd-note">Nothing here yet. Add your first item above.</p>';
+    items.forEach((item) => {
+      const row = document.createElement("label");
+      row.className = "demo-row" + (item.done ? " done" : "");
+      row.innerHTML = '<input type="checkbox"' + (item.done ? " checked" : "") + '> <span>' + esc(item.text) +
+                      '</span><button class="demo-x" aria-label="Remove ' + esc(item.text) + '">×</button>';
+      row.querySelector("input").addEventListener("change", (e) =>
+        ctx.update((d) => { d.items.find((i) => i.id === item.id).done = e.target.checked; }));
+      row.querySelector(".demo-x").addEventListener("click", (e) => {
+        e.preventDefault();
+        ctx.update((d) => { d.items = d.items.filter((i) => i.id !== item.id); });
+      });
+      list.appendChild(row);
+    });
+  },
+
+  // Phase 4 (Penny): what the AI sees each turn, and the tools she can use. Not used yet.
+  summarizeForAI(ctx) { return ctx.data.items.map((i) => `${i.id}: ${i.text}${i.done ? " (done)" : ""}`).join("\n"); },
+  tools: [],
+  knowledge: "",
+  suggestions: []
+};
+
+</script>
+<script>
+dd.start(typeof DD_PROGRAM !== "undefined" ? DD_PROGRAM : null);
+</script>
+</body>
+</html>
